@@ -308,3 +308,6 @@ for(const name of [...Object.keys(E.ranges),'seek']){
  };
  field.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();field.blur();}else if(e.key==='Escape'){e.preventDefault();restore();field.blur();}};
 }
+
+const builtinFlightPreset={"name": "아래에서 위로 날아가기", "project": {"format": "balloon-studio", "version": 2, "text": "오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌", "config": {"float": 32, "speed": 28, "rotation": 30, "rotationShare": 60, "size": 52, "typeSize": 101, "weight": 500, "font": "pretendard", "visible": false, "openTop": false, "flowThrough": true, "collision": true, "bounce": 38, "softness": 35, "windTop": 0, "windBottom": 6, "windLeft": 0, "windRight": 0, "hold": false, "letterSpacing": 58, "lineSpacing": 57, "layout": "text", "color": "#d9ff96", "ink": "#211c19", "background": "#ffffff"}, "keyframes": [], "overrides": {}, "inkOverrides": {}, "resolution": "1080x1350", "duration": 30, "fps": 30, "customFont": null, "googleFont": null, "initialPositions": null, "brushText": "오ㄹ류페스티벌"}};
+$('builtin-flight-preset').onclick=()=>applySavedPreset(builtinFlightPreset);

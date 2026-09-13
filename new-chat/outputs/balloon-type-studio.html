@@ -25,6 +25,8 @@ main{grid-template-columns:260px minmax(0,1fr) 300px}#motion-controls{grid-colum
 .flight-presets{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}.flight-presets:empty{display:none}.flight-preset-button{width:100%;white-space:normal;text-align:left;background:#e8efdd;border-color:#c9d7b6;padding:11px 12px}
 
 .range-value{font:inherit;font-size:13px;font-variant-numeric:tabular-nums;width:66px;min-width:0;flex-shrink:0;text-align:right;padding:5px 4px 5px 7px;border:1px solid #cdd3c4;border-radius:4px;background:#fff;color:#25221f}.wind-grid .range-value{width:58px}.time-controls .range-value{width:74px}.canvas-format{min-width:0}.canvas-format>label{display:flex;align-items:center;gap:8px;font-size:13px}.canvas-format select{width:235px;max-width:100%;font-size:13px}.canvas-toolbar>span{white-space:nowrap}article>#format-note{margin:0 0 10px;font-size:12px}.canvas-toolbar{gap:10px}.canvas-toolbar .toolbar-actions{margin-left:auto}@media(max-width:1100px){.canvas-format{width:100%}.canvas-format select{flex:1;width:100%;min-width:0}}
+
+.builtin-flight-preset{margin-bottom:16px}
 </style></head>
 <body>
 <main>
@@ -42,7 +44,7 @@ main{grid-template-columns:260px minmax(0,1fr) 300px}#motion-controls{grid-colum
 <label class="range-label" for="bounce">통통 튀는 탄성 <input id="bounce-out" class="range-value" type="number" min="0" max="100" step="1" value="38" aria-label="통통 튀는 탄성 수치"></label><input id="bounce" type="range" min="0" max="100" value="38"><label class="range-label" for="softness">몰랑함 <input id="softness-out" class="range-value" type="number" min="0" max="100" step="1" value="35" aria-label="몰랑함 수치"></label><input id="softness" type="range" min="0" max="100" value="35"><p class="hint">부딪힐 때 살짝 눌렸다가 출렁이며 돌아와요.</p>
 </div></details></aside>
 <aside id="controls">
-<button id="reset-defaults" class="reset-defaults">기본 상태로 리셋</button><div id="flight-presets" class="flight-presets" aria-label="아래에서 위로 프리셋 바로가기"></div>
+<button id="reset-defaults" class="reset-defaults">기본 상태로 리셋</button><button id="builtin-flight-preset" class="flight-preset-button builtin-flight-preset">아래에서 위로 날아가기</button><div id="flight-presets" class="flight-presets" aria-label="아래에서 위로 프리셋 바로가기"></div>
 <section class="preset-panel"><label class="section-label" for="preset-name"><b>내 프리셋</b></label><div class="inline"><input id="preset-name" type="text" placeholder="프리셋 이름" aria-label="프리셋 이름"><button id="preset-add">＋ 저장</button></div><div class="inline preset-actions"><select id="preset-list" aria-label="저장된 프리셋"></select><button id="preset-apply">적용</button><button id="preset-delete">삭제</button></div><p class="hint">텍스트·판형·폰트·배치·키프레임을 이 브라우저에 저장해요. 다른 기기로 옮길 때는 ‘설정 저장’을 사용하세요.</p></section><section><label for="text" class="section-label"><b>텍스트 · 타이포그래피</b><span id="count"></span></label><textarea id="text" spellcheck="false">오ㄹ류페스티벌</textarea><p class="hint">한 글자마다 하나의 구. 띄어쓰기와 줄바꿈도 반영해요.</p>
 <label class="range-label" for="font">폰트</label><select id="font"><option value="gothic">고딕</option><option value="pretendard" selected>Pretendard Variable</option><option value="serif">명조</option><option value="rounded">둥근 고딕</option><option value="mono">고정폭</option><option value="brush">궁서</option></select>
 <label class="range-label" for="google-family">Google Fonts 연결</label><div class="inline"><input id="google-family" type="text" list="google-font-list" placeholder="예: Noto Sans KR" maxlength="80" aria-label="Google Fonts 폰트 이름"><button id="google-connect">연결</button></div><datalist id="google-font-list"><option value="Noto Sans KR"><option value="Noto Serif KR"><option value="Gowun Dodum"><option value="Gowun Batang"><option value="Black Han Sans"><option value="Jua"></datalist><p class="hint">영문 폰트 이름을 입력하세요. 온라인 연결이 필요해요.</p>
@@ -628,5 +630,8 @@ for(const name of [...Object.keys(E.ranges),'seek']){
  };
  field.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();field.blur();}else if(e.key==='Escape'){e.preventDefault();restore();field.blur();}};
 }
+
+const builtinFlightPreset={"name": "아래에서 위로 날아가기", "project": {"format": "balloon-studio", "version": 2, "text": "오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌", "config": {"float": 32, "speed": 28, "rotation": 30, "rotationShare": 60, "size": 52, "typeSize": 101, "weight": 500, "font": "pretendard", "visible": false, "openTop": false, "flowThrough": true, "collision": true, "bounce": 38, "softness": 35, "windTop": 0, "windBottom": 6, "windLeft": 0, "windRight": 0, "hold": false, "letterSpacing": 58, "lineSpacing": 57, "layout": "text", "color": "#d9ff96", "ink": "#211c19", "background": "#ffffff"}, "keyframes": [], "overrides": {}, "inkOverrides": {}, "resolution": "1080x1350", "duration": 30, "fps": 30, "customFont": null, "googleFont": null, "initialPositions": null, "brushText": "오ㄹ류페스티벌"}};
+$('builtin-flight-preset').onclick=()=>applySavedPreset(builtinFlightPreset);
 </script>
 </body></html>

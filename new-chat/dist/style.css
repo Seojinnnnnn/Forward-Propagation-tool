@@ -24,3 +24,5 @@ main{grid-template-columns:260px minmax(0,1fr) 300px}#motion-controls{grid-colum
 .flight-presets{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}.flight-presets:empty{display:none}.flight-preset-button{width:100%;white-space:normal;text-align:left;background:#e8efdd;border-color:#c9d7b6;padding:11px 12px}
 
 .range-value{font:inherit;font-size:13px;font-variant-numeric:tabular-nums;width:66px;min-width:0;flex-shrink:0;text-align:right;padding:5px 4px 5px 7px;border:1px solid #cdd3c4;border-radius:4px;background:#fff;color:#25221f}.wind-grid .range-value{width:58px}.time-controls .range-value{width:74px}.canvas-format{min-width:0}.canvas-format>label{display:flex;align-items:center;gap:8px;font-size:13px}.canvas-format select{width:235px;max-width:100%;font-size:13px}.canvas-toolbar>span{white-space:nowrap}article>#format-note{margin:0 0 10px;font-size:12px}.canvas-toolbar{gap:10px}.canvas-toolbar .toolbar-actions{margin-left:auto}@media(max-width:1100px){.canvas-format{width:100%}.canvas-format select{flex:1;width:100%;min-width:0}}
+
+.builtin-flight-preset{margin-bottom:16px}
