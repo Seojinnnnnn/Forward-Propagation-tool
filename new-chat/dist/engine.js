@@ -2,20 +2,21 @@
 (function(root){
 'use strict';
 const STEP=1/120;
-const defaults={float:32,speed:28,rotation:30,rotationShare:30,size:300,typeSize:180,weight:500,font:'gothic',visible:true,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,layout:'text',color:'#d9ff96',accent:'#ade8eb',ink:'#211c19',background:'#ffffff'};
-const ranges={float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[40,220],weight:[300,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
-const colors=['color','accent','ink','background'];
+const defaults={float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
+const ranges={letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[1,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
+const colors=['color','ink','background'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function validateConfig(input){
  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('설정 형식을 확인해주세요.');
  const out={...defaults};
  for(const [key,value]of Object.entries(input)){
+  if(key==='accent')continue; // Older saved projects remain readable.
   if(!Object.prototype.hasOwnProperty.call(defaults,key))throw Error('알 수 없는 설정입니다: '+key);
   if(ranges[key]){const [a,b]=ranges[key];if(typeof value!=='number'||!Number.isFinite(value)||value<a||value>b)throw Error('설정 범위를 확인해주세요: '+key);}
   else if(colors.includes(key)){if(typeof value!=='string'||!/^#[0-9a-f]{6}$/i.test(value))throw Error('색상 형식을 확인해주세요.');}
-  else if(['visible','collision','hold'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
-  else if(key==='layout'&&!['text','row','column','grid','circle'].includes(value))throw Error('정렬 방식을 확인해주세요.');
-  else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google'].includes(value))throw Error('폰트를 확인해주세요.');
+  else if(['visible','collision','hold','openTop','flowThrough'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
+  else if(key==='layout'&&!['text','row','column','grid','circle','diagonal','zigzag','rings'].includes(value))throw Error('정렬 방식을 확인해주세요.');
+  else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google','pretendard'].includes(value))throw Error('폰트를 확인해주세요.');
   out[key]=value;
  }
  return out;
@@ -37,7 +38,7 @@ function interpolate(keys,t,fallback){
  const out={...a.config};
  for(const key of Object.keys(ranges))out[key]=a.config[key]+(b.config[key]-a.config[key])*f;
  for(const key of colors)out[key]=mixColor(a.config[key],b.config[key],f);
- if(t>=b.time-1e-8)for(const key of ['font','visible','collision','hold','layout'])out[key]=b.config[key];
+ if(t>=b.time-1e-8)for(const key of ['font','visible','collision','hold','openTop','flowThrough','layout'])out[key]=b.config[key];
  return out;
 }
 function radius(config,w,h,n){
@@ -82,7 +83,19 @@ class World{
  arrange(config){
   const ps=this.particles,n=ps.length,w=this.width,h=this.height,r=radius(config,w,h,n),margin=r+30;this.layout=config.layout;
   let targets=[];
-  if(config.layout==='circle'){const ring=Math.min(w,h)*.36;targets=ps.map((s,i)=>({x:n===1?0:Math.sin(i/n*Math.PI*2)*ring,y:n===1?0:Math.cos(i/n*Math.PI*2)*ring}));}
+  if(['diagonal','zigzag','rings'].includes(config.layout)){
+   const bx=Math.max(0,w/2-margin),by=Math.max(0,h/2-margin);
+   targets=ps.map((p,i)=>{const u=n<2?.5:i/(n-1);
+    if(config.layout==='diagonal')return {x:(u*2-1)*bx,y:(1-u*2)*by};
+    if(config.layout==='zigzag')return {x:n<2?0:(i%2?1:-1)*bx*.8,y:(1-u*2)*by};
+    if(i===0)return {x:0,y:0};
+    const ring=Math.ceil((Math.sqrt(1+4*i/3)-1)/2),start=1+3*(ring-1)*ring;
+    const slots=Math.min(6*ring,n-start),angle=(i-start)/slots*Math.PI*2;
+    const rings=Math.max(1,Math.ceil((Math.sqrt(1+4*(n-1)/3)-1)/2));
+    return {x:Math.sin(angle)*bx*ring/rings,y:Math.cos(angle)*by*ring/rings};
+   });
+  }
+  else if(config.layout==='circle'){const ring=Math.min(w,h)*.36;targets=ps.map((s,i)=>({x:n===1?0:Math.sin(i/n*Math.PI*2)*ring,y:n===1?0:Math.cos(i/n*Math.PI*2)*ring}));}
   else{
    const cols=config.layout==='row'?Math.max(1,n):config.layout==='column'?1:Math.max(1,Math.ceil(Math.sqrt(n*w/h)));
    let offset=0,prev=-1;const rows=new Map();
@@ -96,21 +109,44 @@ class World{
     rows.set(row,Math.max(rows.get(row)||0,col+1));return {row,col};
    });
    const rowCount=Math.max(1,...Array.from(rows.keys(),r=>r+1));
-   const stepX=Math.min(r*2.35,(w-margin*2)/Math.max(1,...Array.from(rows.values(),v=>v-1))),stepY=Math.min(r*2.35,(h-margin*2)/Math.max(1,rowCount-1));
+   const stepX=Math.min(r*2.35+config.letterSpacing,(w-margin*2)/Math.max(1,...Array.from(rows.values(),v=>v-1))),stepY=Math.min(r*2.35+config.lineSpacing,(h-margin*2)/Math.max(1,rowCount-1));
    targets=targets.map(p=>({x:(p.col-(rows.get(p.row)-1)/2)*stepX,y:((rowCount-1)/2-p.row)*stepY}));
   }
-  ps.forEach((s,i)=>{s.pinned=false;delete s.anchor;s.x=targets[i].x;s.y=targets[i].y;s.z=0;s.tx=s.x;s.ty=s.y;s.vx=0;s.vy=0;s.vz=0;s.spin=0;s.turn=0;s.rotationClock=0;s.squash=0;s.squashVelocity=0;});
+  if(['circle','rings','diagonal','zigzag'].includes(config.layout))targets=targets.map(p=>({x:p.x*(1+config.letterSpacing/(r*2.35)),y:p.y*(1+config.lineSpacing/(r*2.35))}));
+  this.letterSpacing=config.letterSpacing;this.lineSpacing=config.lineSpacing;
+  ps.forEach((s,i)=>{s.pinned=false;delete s.anchor;s.x=targets[i].x;s.y=targets[i].y;s.z=0;s.tx=s.x;s.ty=s.y;s.vx=0;s.vy=0;s.vz=0;s.spin=0;s.turn=0;s.rotationClock=0;s.turnStart=null;s.turnDuration=0;s.turnDirection=1;s.turnReadyAt=0;s.lastTurnStart=-1;s.squash=0;s.squashVelocity=0;});
+  this.flowActive=!!config.flowThrough;
+  if(config.flowThrough&&ps.length){const highest=ps.reduce((v,p)=>Math.max(v,p.y),-Infinity);const shift=highest+h/2+r*1.2+12;for(const p of ps){p.y-=shift;p.ty=p.y;p.vy=60;}}
+ }
+ respace(config){
+  const old=this.particles.map(p=>({...p}));this.arrange(config);
+  this.particles.forEach((p,i)=>{const tx=p.tx,ty=p.ty;Object.assign(p,old[i]);p.x+=tx-old[i].tx;p.y+=ty-old[i].ty;p.tx=tx;p.ty=ty;});
  }
  step(dt,config){
+  if(this.letterSpacing!==config.letterSpacing||this.lineSpacing!==config.lineSpacing)this.respace(config);
+  if(!!config.flowThrough!==!!this.flowActive){if(config.flowThrough)this.arrange(config);else this.flowActive=false;}
   if(config.layout!==this.layout)this.arrange(config);
   this.time+=dt;const d=dt*config.speed/40;if(d===0)return;
   this.motionTime+=d;
   const t=this.motionTime,ps=this.particles,r=radius(config,this.width,this.height,ps.length),amp=config.float/100;
   this.rotationTimeline=(this.rotationTimeline||0)+d*config.rotation/100*2;
-  const round=Math.floor(this.rotationTimeline/8),roundTime=this.rotationTimeline%8;
-  const eligible=ps.filter(s=>!s.pinned);
-  const rotating=new Set([...rotatingIndices(eligible.length,config.rotationShare,round)].map(i=>eligible[i].index));
-  const ax=(config.windLeft-config.windRight)*2.3,ay=(config.windBottom-config.windTop)*2.3;
+  const clock=this.rotationTimeline;
+  // Each selected balloon keeps its own full-turn clock, even as visibility changes.
+  for(const p of ps){
+   if(p.turnStart!=null){const u=clamp((clock-p.turnStart)/p.turnDuration,0,1);p.turn=p.turnDirection*Math.PI*2*(u*u*u*(u*(u*6-15)+10));
+    if(u>=1){p.turnStart=null;p.turnReadyAt=clock+.4;}
+   }
+  }
+  const selectionRound=Math.floor(clock/.4);
+  if(config.rotation>0&&config.rotationShare>0&&selectionRound!==this.rotationSelectionRound){
+   this.rotationSelectionRound=selectionRound;
+   const visible=ps.filter(p=>!p.pinned&&p.x>=-this.width/2&&p.x<=this.width/2&&p.y>=-this.height/2&&p.y<=this.height/2);
+   const target=rotatingIndices(visible.length,config.rotationShare,selectionRound).size;
+   const active=visible.filter(p=>p.turnStart!=null).length;
+   const candidates=visible.filter(p=>p.turnStart==null&&clock>=(p.turnReadyAt||0)).sort((a,b)=>(a.lastTurnStart??-1)-(b.lastTurnStart??-1)||rotationRandom(a.index,selectionRound+99)-rotationRandom(b.index,selectionRound+99));
+   for(const p of candidates.slice(0,Math.max(0,target-active))){p.turnStart=clock;p.lastTurnStart=clock;p.turnDuration=3.4+rotationRandom(p.index,selectionRound*13+202)*2.2;p.turnDirection=rotationRandom(p.index,selectionRound*13+203)<.5?-1:1;p.turn=0;}
+  }
+  const ax=(config.windLeft-config.windRight)*2.3,ay=(config.windBottom-config.windTop)*2.3+((config.openTop||config.flowThrough)?30:0);
   for(const s of ps){
    if(s.pinned){s.vx=s.vy=s.vz=0;continue;}
    const anchor=Number.isInteger(s.anchor)?ps[s.anchor]:null;
@@ -120,15 +156,8 @@ class World{
    sv+=(-105*q-6.5*sv)*d;q+=sv*d;
    if(q>.14){q=.14;sv=Math.min(0,sv);}if(q<-.06){q=-.06;sv=Math.max(0,sv);}
    s.squash=q;s.squashVelocity=sv;
-   // Finish a complete turn before the next randomly selected group starts.
-   if(rotating.has(s.index)){
-    const delay=rotationRandom(s.index,round*13+201)*1.2,duration=3.4+rotationRandom(s.index,round*13+202)*2.2;
-    const u=clamp((roundTime-delay)/duration,0,1),ease=u*u*u*(u*(u*6-15)+10);
-    const direction=rotationRandom(s.index,round*13+203)<.5?-1:1;
-    s.turn=direction*Math.PI*2*ease;
-   }else s.turn=0;
    s.vx+=(ax+(Math.sin(t*.64+p)*30+Math.sin(t*1.27+p)*12)*amp+(config.hold?(s.tx-s.x)*2.8:0))*d;
-   s.vy+=(ay+(Math.sin(t*1.75+p)*100+Math.sin(t*3.5+p*2)*28+Math.cos(t*.39+p)*18)*amp+(config.hold?(s.ty-s.y)*2.8:0))*d;
+   s.vy+=(ay+(Math.sin(t*1.75+p)*100+Math.sin(t*3.5+p*2)*28+Math.cos(t*.39+p)*18)*amp+(config.hold&&!config.openTop&&!config.flowThrough?(s.ty-s.y)*2.8:0))*d;
    s.vz+=(Math.sin(t*.63+p)*amp*20-s.z*.32)*d;
    const damp=Math.exp(-.52*d);s.vx*=damp;s.vy*=damp;s.vz*=damp;
    const speed=Math.hypot(s.vx,s.vy,s.vz);if(speed>380){s.vx*=380/speed;s.vy*=380/speed;s.vz*=380/speed;}
@@ -136,7 +165,14 @@ class World{
   }
   // Resolve screen-space contacts so depth cannot hide overlapping silhouettes.
   for(let iteration=0;iteration<(config.collision?10:1);iteration++){
-  if(config.collision)for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){
+  const pairs=[];
+  if(config.collision){const cells=new Map(),cellSize=Math.max(.001,r*2.1);
+   for(let i=0;i<ps.length;i++){const x=Math.floor(ps[i].x/cellSize),y=Math.floor(ps[i].y/cellSize);
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const j of cells.get((x+dx)+','+(y+dy))||[])pairs.push([j,i]);
+    const key=x+','+y;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(i);
+   }
+  }
+  for(const [i,j] of pairs){
    const a=ps[i],b=ps[j];const wa=a.pinned?0:1,wb=b.pinned?0:1,total=wa+wb;if(!total)continue;let dx=b.x-a.x,dy=b.y-a.y,dz=0;let distance=Math.hypot(dx,dy);
    if(distance>=r*2.1)continue;
    if(distance<1e-6){dx=Math.cos(i+j);dy=Math.sin(i+j);dz=0;distance=Math.hypot(dx,dy);}
@@ -151,13 +187,13 @@ class World{
   for(const s of ps){
    const bx=Math.max(0,this.width/2-r-24),by=Math.max(0,this.height/2-r-24),bz=Math.max(35,r*.8);const restitution=.4+config.bounce/100*.55;
    for(const [pos,vel,bound]of [['x','vx',bx],['y','vy',by],['z','vz',bz]]){
-    if(s[pos]>bound){s[pos]=bound;if(s[vel]>0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,s[vel],config.softness);s[vel]*=-restitution;}}
-    else if(s[pos]<-bound){s[pos]=-bound;if(s[vel]<0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,-s[vel],config.softness);s[vel]*=-restitution;}}
+    if(s[pos]>bound&&!((config.openTop||config.flowThrough)&&pos==='y')){s[pos]=bound;if(s[vel]>0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,s[vel],config.softness);s[vel]*=-restitution;}}
+    else if(s[pos]<-bound&&!(config.flowThrough&&pos==='y')){s[pos]=-bound;if(s[vel]<0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,-s[vel],config.softness);s[vel]*=-restitution;}}
    }
   }
   }
  }
- snapshot(){return {width:this.width,height:this.height,time:this.time,motionTime:this.motionTime,rotationTimeline:this.rotationTimeline,layout:this.layout,particles:this.particles.map(s=>({...s}))};}
+ snapshot(){return {rotationSelectionRound:this.rotationSelectionRound,letterSpacing:this.letterSpacing,lineSpacing:this.lineSpacing,flowActive:!!this.flowActive,width:this.width,height:this.height,time:this.time,motionTime:this.motionTime,rotationTimeline:this.rotationTimeline,layout:this.layout,particles:this.particles.map(s=>({...s}))};}
  restore(s){Object.assign(this,s,{particles:s.particles.map(p=>({...p}))});}
 }
 const api={STEP,defaults,ranges,colors,validateConfig,letters,rgb,mixColor,interpolate,radius,hitTest,moveParticle,sampleSegment,rotatingIndices,rotationProfile,rotationRate,World};

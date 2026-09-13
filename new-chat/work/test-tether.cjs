@@ -29,7 +29,7 @@ const evaluate=s=>vm.runInContext(s,context);
  elements.duration.value=1;elements.fps.value=24;const task=evaluate("exportAnimation('png')");evaluate('exportController.abort()');await task;assert.equal(downloaded.length,count);assert.equal(evaluate('exporting'),false);
  // Pointer interactions at half-size canvas coordinates.
  const pointer=(x,y)=>({button:0,pointerId:1,clientX:(x+640)/2,clientY:(360-y)/2,preventDefault(){}});
- evaluate('paused=true');elements['tool-draw'].onclick();elements['brush-text'].value='가나';
+ evaluate('paused=true;state.size=100;resetWorld()');elements['tool-draw'].onclick();elements['brush-text'].value='가나';
  const original=evaluate('world.particles.length');elements.canvas.listeners.pointerdown(pointer(-300,150));elements.canvas.listeners.pointermove(pointer(100,150));elements.canvas.listeners.pointerup(pointer(100,150));
  assert(evaluate('world.particles.length')>original);assert.equal(evaluate('gesture'),null);assert(evaluate('initialPositions.points.length')>original);
  assert(evaluate('world.particles.slice('+original+').every(p=>p.y===150)'));
