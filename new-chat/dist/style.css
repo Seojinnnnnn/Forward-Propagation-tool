@@ -9,3 +9,6 @@ header{height:62px;padding:0 22px}main{height:calc(100dvh - 62px);min-height:540
 @media(min-width:1600px){main{grid-template-columns:320px minmax(0,1fr)}article{padding:14px 20px}}
 @media(max-width:1000px){main{grid-template-columns:280px minmax(0,1fr)}}
 @media(max-width:760px){header{height:62px;padding:0 18px}main{height:auto;min-height:0}article{padding:10px}.stage-wrap{height:55dvh;min-height:300px}aside{padding:24px}.timeline{padding:0 12px}}
+
+main{grid-template-columns:minmax(0,1fr) 300px}aside{grid-column:2;grid-row:1;border-right:0;border-left:1px solid #d9dad3}article{grid-column:1;grid-row:1}.preset-panel input{width:100%;min-width:0;padding:9px 8px;font:inherit;font-size:14px;border:1px solid #d1d3c8;border-radius:5px;background:white}.preset-actions{margin-top:10px}.format-panel>label{font-size:14px;display:flex;flex-direction:column;gap:12px}.preset-panel button{padding:9px 8px}
+@media(min-width:1600px){main{grid-template-columns:minmax(0,1fr) 320px}}@media(max-width:1000px){main{grid-template-columns:minmax(0,1fr) 280px}}@media(max-width:760px){main{display:flex}aside{border-left:0}}

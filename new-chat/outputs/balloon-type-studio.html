@@ -10,18 +10,21 @@ header{height:62px;padding:0 22px}main{height:calc(100dvh - 62px);min-height:540
 @media(min-width:1600px){main{grid-template-columns:320px minmax(0,1fr)}article{padding:14px 20px}}
 @media(max-width:1000px){main{grid-template-columns:280px minmax(0,1fr)}}
 @media(max-width:760px){header{height:62px;padding:0 18px}main{height:auto;min-height:0}article{padding:10px}.stage-wrap{height:55dvh;min-height:300px}aside{padding:24px}.timeline{padding:0 12px}}
+
+main{grid-template-columns:minmax(0,1fr) 300px}aside{grid-column:2;grid-row:1;border-right:0;border-left:1px solid #d9dad3}article{grid-column:1;grid-row:1}.preset-panel input{width:100%;min-width:0;padding:9px 8px;font:inherit;font-size:14px;border:1px solid #d1d3c8;border-radius:5px;background:white}.preset-actions{margin-top:10px}.format-panel>label{font-size:14px;display:flex;flex-direction:column;gap:12px}.preset-panel button{padding:9px 8px}
+@media(min-width:1600px){main{grid-template-columns:minmax(0,1fr) 320px}}@media(max-width:1000px){main{grid-template-columns:minmax(0,1fr) 280px}}@media(max-width:760px){main{display:flex}aside{border-left:0}}
 </style></head>
 <body>
 <header><a class="brand" href="./">둥실<span class="brand-dot"></span></a><span class="subtitle">무빙 아이덴티티 스튜디오</span><span class="edition">TYPE IN MOTION / 03</span></header>
 <main>
 <aside id="controls">
 <div class="panel-title"><h1>글자에 움직임을.</h1><p>바람을 더하고, 시간을 디자인하세요.</p></div>
-<section><label for="text" class="section-label">01 <b>텍스트 · 타이포그래피</b><span id="count"></span></label><textarea id="text" spellcheck="false" maxlength="240">오ㄹ류페스티벌</textarea><p class="hint">한 글자마다 하나의 구. 띄어쓰기와 줄바꿈도 반영해요.</p>
-<label class="range-label" for="font">폰트</label><select id="font"><option value="gothic">고딕</option><option value="serif">명조</option><option value="rounded">둥근 고딕</option><option value="mono">고정폭</option><option value="brush">궁서</option></select>
+<section class="preset-panel"><label class="section-label" for="preset-name"><b>내 프리셋</b></label><div class="inline"><input id="preset-name" type="text" placeholder="프리셋 이름" aria-label="프리셋 이름"><button id="preset-add">＋ 저장</button></div><div class="inline preset-actions"><select id="preset-list" aria-label="저장된 프리셋"></select><button id="preset-apply">적용</button><button id="preset-delete">삭제</button></div><p class="hint">텍스트·판형·폰트·배치·키프레임을 이 브라우저에 저장해요. 다른 기기로 옮길 때는 ‘설정 저장’을 사용하세요.</p></section><section class="format-panel"><label for="resolution">판형 <select id="resolution"><optgroup label="가로 화면"><option value="1280x720">HD 가로 · 1280 × 720</option><option value="1920x1080">Full HD 가로 · 1920 × 1080</option></optgroup><optgroup label="A0~A4 / 인쇄용"><option value="9933x14043">A0 세로 · 9933 × 14043</option><option value="14043x9933">A0 가로 · 14043 × 9933</option><option value="7016x9933">A1 세로 · 7016 × 9933</option><option value="9933x7016">A1 가로 · 9933 × 7016</option><option value="4960x7016">A2 세로 · 4960 × 7016</option><option value="7016x4960">A2 가로 · 7016 × 4960</option><option value="3508x4960">A3 세로 · 3508 × 4960</option><option value="4960x3508">A3 가로 · 4960 × 3508</option><option value="2480x3508">A4 세로 · 2480 × 3508</option><option value="3508x2480">A4 가로 · 3508 × 2480</option></optgroup><optgroup label="인스타그램"><option value="1080x1080">정사각 피드 · 1080 × 1080</option><option value="1080x1350">세로 피드 4:5 · 1080 × 1350</option><option value="1080x1440">세로 피드 3:4 · 1080 × 1440</option><option value="1080x1920">스토리 · 릴스 9:16 · 1080 × 1920</option></optgroup><optgroup label="세로 화면"><option value="720x1280">HD 세로 · 720 × 1280</option><option value="1200x1800">세로 포스터 2:3 · 1200 × 1800</option><option value="1080x2160">긴 세로 1:2 · 1080 × 2160</option></optgroup></select></label><p class="hint" id="format-note"></p></section><section><label for="text" class="section-label">01 <b>텍스트 · 타이포그래피</b><span id="count"></span></label><textarea id="text" spellcheck="false">오ㄹ류페스티벌</textarea><p class="hint">한 글자마다 하나의 구. 띄어쓰기와 줄바꿈도 반영해요.</p>
+<label class="range-label" for="font">폰트</label><select id="font"><option value="gothic">고딕</option><option value="pretendard">Pretendard Variable</option><option value="serif">명조</option><option value="rounded">둥근 고딕</option><option value="mono">고정폭</option><option value="brush">궁서</option></select>
 <label class="range-label" for="google-family">Google Fonts 연결</label><div class="inline"><input id="google-family" type="text" list="google-font-list" placeholder="예: Noto Sans KR" maxlength="80" aria-label="Google Fonts 폰트 이름"><button id="google-connect">연결</button></div><datalist id="google-font-list"><option value="Noto Sans KR"><option value="Noto Serif KR"><option value="Gowun Dodum"><option value="Gowun Batang"><option value="Black Han Sans"><option value="Jua"></datalist><p class="hint">영문 폰트 이름을 입력하세요. 온라인 연결이 필요해요.</p>
 <label class="file-label">외부 폰트 파일 불러오기 <input id="font-file" type="file" accept=".woff,.woff2,.ttf,.otf"></label><p class="hint" id="font-note">기기에 설치된 폰트를 사용해요.</p>
 <label class="range-label" for="typeSize">글자 크기 <output id="typeSize-out"></output></label><input id="typeSize" type="range" min="40" max="220" value="180">
-<label class="range-label" for="weight">글자 굵기 <output id="weight-out"></output></label><input id="weight" type="range" min="300" max="900" step="100" value="500"></section>
+<label class="range-label" for="weight">글자 굵기 <output id="weight-out"></output></label><input id="weight" type="range" min="100" max="900" step="1" value="500"></section>
 <details open><summary><span>02</span> 움직임 · 바람</summary><div class="detail-body">
 <label class="range-label" for="float">두둥실 <output id="float-out"></output></label><input id="float" type="range" min="0" max="100" value="32">
 <label class="range-label" for="speed">움직임 속도 <output id="speed-out"></output></label><input id="speed" type="range" min="0" max="100" value="28">
@@ -38,42 +41,43 @@ header{height:62px;padding:0 22px}main{height:calc(100dvh - 62px);min-height:540
 <details open><summary><span>03</span> 형태 · 정렬 · 색상</summary><div class="detail-body">
 <label class="range-label" for="size">구 크기 <output id="size-out"></output></label><input id="size" type="range" min="20" max="600" value="300">
 <label class="toggle-row" for="visible"><span>구 보이기<small>끄면 구만 투명해지고 앞뒤 글자는 모두 남아요.</small></span><input id="visible" type="checkbox" role="switch" checked></label>
-<label class="range-label" for="layout">구 정렬</label><div class="inline"><select id="layout"><option value="text">글자 순서</option><option value="row">가로 정렬</option><option value="column">세로 정렬</option><option value="grid">격자 정렬</option><option value="circle">원형 정렬</option></select><button id="arrange">정렬하기</button></div>
+<label class="range-label" for="layout">구 정렬</label><div class="inline"><select id="layout"><option value="text">글자 순서</option><option value="row">가로 정렬</option><option value="column">세로 정렬</option><option value="grid">격자 정렬</option><option value="circle">원형 정렬</option><option value="diagonal">대각선 ↘</option><option value="zigzag">지그재그</option><option value="rings">동심원</option></select><button id="arrange">정렬하기</button></div>
 <label class="toggle-row" for="hold"><span>정렬 유지<small>바람을 받아도 제자리로 돌아와요.</small></span><input id="hold" type="checkbox" role="switch"></label>
-<div class="color-grid"><label for="color">기본 구 <input id="color" type="color" value="#d9ff96"></label><label for="accent">포인트 구 <input id="accent" type="color" value="#ade8eb"></label><label for="ink">글자 <input id="ink" type="color" value="#211c19"></label><label for="background">배경 <input id="background" type="color" value="#ffffff"></label></div>
+<div class="color-grid"><label for="color">기본 구 <input id="color" type="color" value="#d9ff96"></label><label for="ink">글자 <input id="ink" type="color" value="#211c19"></label><label for="background">배경 <input id="background" type="color" value="#ffffff"></label></div>
 <label class="range-label" for="sphere-select">개별 구 색상</label><div class="inline"><select id="sphere-select"></select><input id="individual-color" type="color" value="#d9ff96" aria-label="선택한 구의 색상"><button id="clear-color" title="기본 색으로 되돌리기">해제</button></div>
 </div></details><div class="panel-foot">빛과 그림자 없이, 형태와 움직임만.</div>
 </aside>
 <article>
 <div class="canvas-toolbar"><span>라이브 캔버스 <span class="resolution" id="resolution-label"></span></span><div class="toolbar-actions"><button id="snapshot">PNG 한 장</button><button id="pause" aria-pressed="false">Ⅱ 일시정지</button></div></div>
-<div class="canvas-tools" aria-label="캔버스 편집 도구"><div class="tool-modes" role="group" aria-label="마우스 모드"><button id="tool-move" aria-pressed="true">선택 · 이동</button><button id="tool-draw" aria-pressed="false">드래그로 생성</button></div><label class="quick-toggle" for="visible-canvas"><input id="visible-canvas" type="checkbox" role="switch" checked> 구 보이기</label><label class="brush-label" for="brush-text" id="brush-controls" hidden>그릴 글자 <input id="brush-text" type="text" maxlength="80" value="오ㄹ류페스티벌" spellcheck="false"></label><button id="clear-all" hidden>전체 지우기</button></div><p id="interaction-hint" class="interaction-hint">구를 클릭하고 드래그해서 옮기세요. 선택 후 방향키로도 이동할 수 있어요.</p><div class="stage-wrap"><div id="stage"><canvas id="canvas" tabindex="0" aria-label="구 선택 및 이동 캔버스. 방향키로 선택한 구 이동, Escape로 드래그 취소." aria-describedby="interaction-hint"></canvas><svg id="selection-overlay" aria-hidden="true"><circle id="selection-ring" cx="0" cy="0" r="0" visibility="hidden"/></svg><div id="empty" hidden>어떤 글자를 띄워볼까요?</div><div id="error" hidden>3D 화면을 시작할 수 없어요. 브라우저의 하드웨어 가속을 확인해주세요.</div><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span></div></div>
+<div class="canvas-tools" aria-label="캔버스 편집 도구"><div class="tool-modes" role="group" aria-label="마우스 모드"><button id="tool-move" aria-pressed="true">선택 · 이동</button><button id="tool-draw" aria-pressed="false">드래그로 생성</button></div><label class="quick-toggle" for="visible-canvas"><input id="visible-canvas" type="checkbox" role="switch" checked> 구 보이기</label><label class="brush-label" for="brush-text" id="brush-controls" hidden>그릴 글자 <input id="brush-text" type="text" value="오ㄹ류페스티벌" spellcheck="false"></label><button id="clear-all" hidden>전체 지우기</button></div><p id="interaction-hint" class="interaction-hint">구를 클릭하고 드래그해서 옮기세요. 선택 후 방향키로도 이동할 수 있어요.</p><div class="stage-wrap"><div id="stage"><canvas id="canvas" tabindex="0" aria-label="구 선택 및 이동 캔버스. 방향키로 선택한 구 이동, Escape로 드래그 취소." aria-describedby="interaction-hint"></canvas><svg id="selection-overlay" aria-hidden="true"><circle id="selection-ring" cx="0" cy="0" r="0" visibility="hidden"/></svg><div id="empty" hidden>어떤 글자를 띄워볼까요?</div><div id="error" hidden>3D 화면을 시작할 수 없어요. 브라우저의 하드웨어 가속을 확인해주세요.</div><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span></div></div>
 <div class="live-caption"><span><i></i> <span id="status">자유롭게 떠다니는 중</span></span><span id="mode-label">SHARED SPACE · FLAT SPHERES</span></div>
-<details class="timeline" aria-label="키프레임과 내보내기"><summary>키프레임 · 판형 · 내보내기</summary><div class="timeline-body">
+<details class="timeline" aria-label="키프레임과 내보내기"><summary>키프레임 · 내보내기</summary><div class="timeline-body">
 <div class="timeline-heading"><h2>시간을 디자인하기</h2><div class="toolbar-actions"><button id="save-project">설정 저장</button><label class="button-label">불러오기<input id="load-project" type="file" accept=".json,application/json"></label></div></div>
 <div class="time-controls"><button id="timeline-play">▶ 타임라인 재생</button><label for="seek">현재 <output id="time-out">0.00s</output></label><input id="seek" type="range" min="0" max="6" step="0.01" value="0"><label for="duration">길이 <input id="duration" type="number" min="1" max="30" step="1" value="6"> 초</label></div>
 <div class="key-row"><button id="add-key">＋ 현재 설정을 키프레임에</button><div id="keyframes" aria-label="저장된 키프레임"></div></div>
 <p class="hint">시간을 옮기고 설정을 조절한 뒤 키프레임을 추가하세요. 바람·크기·회전·색상은 부드럽게 이어져요.</p>
-<div class="export-row"><label for="resolution">판형 <select id="resolution"><optgroup label="가로 화면"><option value="1280x720">HD 가로 · 1280 × 720</option><option value="1920x1080">Full HD 가로 · 1920 × 1080</option></optgroup><optgroup label="A3 · A4 / 인쇄용"><option value="3508x4960">A3 세로 · 3508 × 4960</option><option value="4960x3508">A3 가로 · 4960 × 3508</option><option value="2480x3508">A4 세로 · 2480 × 3508</option><option value="3508x2480">A4 가로 · 3508 × 2480</option></optgroup><optgroup label="인스타그램"><option value="1080x1080">정사각 피드 · 1080 × 1080</option><option value="1080x1350">세로 피드 4:5 · 1080 × 1350</option><option value="1080x1440">세로 피드 3:4 · 1080 × 1440</option><option value="1080x1920">스토리 · 릴스 9:16 · 1080 × 1920</option></optgroup><optgroup label="세로 화면"><option value="720x1280">HD 세로 · 720 × 1280</option><option value="1200x1800">세로 포스터 2:3 · 1200 × 1800</option><option value="1080x2160">긴 세로 1:2 · 1080 × 2160</option></optgroup></select></label><label for="fps">프레임 <select id="fps"><option value="24">24 fps</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select></label><button id="record" class="primary">영상 녹화</button><button id="frames">PNG 프레임 ZIP</button><button id="cancel-export" hidden>취소</button></div>
-<p class="hint" id="format-note"></p><p class="hint" id="export-note"></p></div></details><div id="notice" role="status" aria-live="polite"></div><progress id="progress" value="0" max="1" hidden></progress>
+<div class="export-row"><label for="fps">프레임 <select id="fps"><option value="24">24 fps</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select></label><button id="record" class="primary">영상 녹화</button><button id="frames">PNG 프레임 ZIP</button><button id="cancel-export" hidden>취소</button></div>
+<p class="hint" id="export-note"></p></div></details><div id="notice" role="status" aria-live="polite"></div><progress id="progress" value="0" max="1" hidden></progress>
 </article>
 </main><script>/* Deterministic shared-space simulation. No browser or rendering dependency. */
 (function(root){
 'use strict';
 const STEP=1/120;
-const defaults={float:32,speed:28,rotation:30,rotationShare:30,size:300,typeSize:180,weight:500,font:'gothic',visible:true,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,layout:'text',color:'#d9ff96',accent:'#ade8eb',ink:'#211c19',background:'#ffffff'};
-const ranges={float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[40,220],weight:[300,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
-const colors=['color','accent','ink','background'];
+const defaults={float:32,speed:28,rotation:30,rotationShare:30,size:300,typeSize:180,weight:500,font:'gothic',visible:true,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
+const ranges={float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[40,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
+const colors=['color','ink','background'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function validateConfig(input){
  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('설정 형식을 확인해주세요.');
  const out={...defaults};
  for(const [key,value]of Object.entries(input)){
+  if(key==='accent')continue; // Older saved projects remain readable.
   if(!Object.prototype.hasOwnProperty.call(defaults,key))throw Error('알 수 없는 설정입니다: '+key);
   if(ranges[key]){const [a,b]=ranges[key];if(typeof value!=='number'||!Number.isFinite(value)||value<a||value>b)throw Error('설정 범위를 확인해주세요: '+key);}
   else if(colors.includes(key)){if(typeof value!=='string'||!/^#[0-9a-f]{6}$/i.test(value))throw Error('색상 형식을 확인해주세요.');}
   else if(['visible','collision','hold'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
-  else if(key==='layout'&&!['text','row','column','grid','circle'].includes(value))throw Error('정렬 방식을 확인해주세요.');
-  else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google'].includes(value))throw Error('폰트를 확인해주세요.');
+  else if(key==='layout'&&!['text','row','column','grid','circle','diagonal','zigzag','rings'].includes(value))throw Error('정렬 방식을 확인해주세요.');
+  else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google','pretendard'].includes(value))throw Error('폰트를 확인해주세요.');
   out[key]=value;
  }
  return out;
@@ -140,7 +144,19 @@ class World{
  arrange(config){
   const ps=this.particles,n=ps.length,w=this.width,h=this.height,r=radius(config,w,h,n),margin=r+30;this.layout=config.layout;
   let targets=[];
-  if(config.layout==='circle'){const ring=Math.min(w,h)*.36;targets=ps.map((s,i)=>({x:n===1?0:Math.sin(i/n*Math.PI*2)*ring,y:n===1?0:Math.cos(i/n*Math.PI*2)*ring}));}
+  if(['diagonal','zigzag','rings'].includes(config.layout)){
+   const bx=Math.max(0,w/2-margin),by=Math.max(0,h/2-margin);
+   targets=ps.map((p,i)=>{const u=n<2?.5:i/(n-1);
+    if(config.layout==='diagonal')return {x:(u*2-1)*bx,y:(1-u*2)*by};
+    if(config.layout==='zigzag')return {x:n<2?0:(i%2?1:-1)*bx*.8,y:(1-u*2)*by};
+    if(i===0)return {x:0,y:0};
+    const ring=Math.ceil((Math.sqrt(1+4*i/3)-1)/2),start=1+3*(ring-1)*ring;
+    const slots=Math.min(6*ring,n-start),angle=(i-start)/slots*Math.PI*2;
+    const rings=Math.max(1,Math.ceil((Math.sqrt(1+4*(n-1)/3)-1)/2));
+    return {x:Math.sin(angle)*bx*ring/rings,y:Math.cos(angle)*by*ring/rings};
+   });
+  }
+  else if(config.layout==='circle'){const ring=Math.min(w,h)*.36;targets=ps.map((s,i)=>({x:n===1?0:Math.sin(i/n*Math.PI*2)*ring,y:n===1?0:Math.cos(i/n*Math.PI*2)*ring}));}
   else{
    const cols=config.layout==='row'?Math.max(1,n):config.layout==='column'?1:Math.max(1,Math.ceil(Math.sqrt(n*w/h)));
    let offset=0,prev=-1;const rows=new Map();
@@ -194,7 +210,14 @@ class World{
   }
   // Resolve screen-space contacts so depth cannot hide overlapping silhouettes.
   for(let iteration=0;iteration<(config.collision?10:1);iteration++){
-  if(config.collision)for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){
+  const pairs=[];
+  if(config.collision){const cells=new Map(),cellSize=Math.max(.001,r*2.1);
+   for(let i=0;i<ps.length;i++){const x=Math.floor(ps[i].x/cellSize),y=Math.floor(ps[i].y/cellSize);
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const j of cells.get((x+dx)+','+(y+dy))||[])pairs.push([j,i]);
+    const key=x+','+y;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(i);
+   }
+  }
+  for(const [i,j] of pairs){
    const a=ps[i],b=ps[j];const wa=a.pinned?0:1,wb=b.pinned?0:1,total=wa+wb;if(!total)continue;let dx=b.x-a.x,dy=b.y-a.y,dz=0;let distance=Math.hypot(dx,dy);
    if(distance>=r*2.1)continue;
    if(distance<1e-6){dx=Math.cos(i+j);dy=Math.sin(i+j);dz=0;distance=Math.hypot(dx,dy);}
@@ -272,13 +295,13 @@ const E=BalloonEngine,X=BalloonExport,$=id=>document.getElementById(id);
 let state={...E.defaults},keys=[],overrides={},world,customFont=null;
 let width=1280,height=720,paused=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let liveTime=0,cursor=0,timelinePlaying=false,exporting=false,seeking=false,seekToken=0,last=0,accumulator=0,lastUISync=0;
-const resolutions=['1280x720','1920x1080','3508x4960','4960x3508','2480x3508','3508x2480','1080x1080','1080x1350','1080x1440','1080x1920','720x1280','1200x1800','1080x2160'];
+const resolutions=['1280x720','1920x1080','9933x14043','14043x9933','7016x9933','9933x7016','4960x7016','7016x4960','3508x4960','4960x3508','2480x3508','3508x2480','1080x1080','1080x1350','1080x1440','1080x1920','720x1280','1200x1800','1080x2160'];
 let googleFont=null,googleLink=null,fontBusy=false;
 let exportController=null;
 let initialPositions=null,toolMode='move',selected=-1,gesture=null;
 const canvas=$('canvas');
 const gl=canvas.getContext('webgl',{alpha:false,antialias:true,preserveDrawingBuffer:true});
-const fonts={gothic:'"Apple SD Gothic Neo", "Malgun Gothic", sans-serif',serif:'"AppleMyungjo", "Batang", serif',rounded:'"Arial Rounded MT Bold", "NanumSquareRound", "Apple SD Gothic Neo", sans-serif',mono:'"D2Coding", "SFMono-Regular", monospace',brush:'"GungSeo", "Gungsuh", serif',custom:'"BalloonCustom", sans-serif'};
+const fonts={pretendard:'"Pretendard Variable", sans-serif',gothic:'"Apple SD Gothic Neo", "Malgun Gothic", sans-serif',serif:'"AppleMyungjo", "Batang", serif',rounded:'"Arial Rounded MT Bold", "NanumSquareRound", "Apple SD Gothic Neo", sans-serif',mono:'"D2Coding", "SFMono-Regular", monospace',brush:'"GungSeo", "Gungsuh", serif',custom:'"BalloonCustom", sans-serif'};
 function notice(text,error=false){$('notice').textContent=text;$('notice').classList.toggle('error',error);}
 function duration(){return Number($('duration').value);}
 function textValue(){return $('text').value;}
@@ -305,7 +328,7 @@ function resetWorld(){world=createWorld(state);liveTime=0;accumulator=0;}
 function rebuildText(reset=true){if(reset)resetWorld();const letters=E.letters(textValue());$('count').textContent=letters.length+'개의 구';$('empty').hidden=letters.length>0;
  const select=$('sphere-select'),old=select.value;select.replaceChildren();for(const s of letters){const option=document.createElement('option');option.value=s.index;option.textContent=(s.index+1)+' · '+s.char;select.append(option);}if(letters.some(s=>String(s.index)===old))select.value=old;select.disabled=!letters.length;$('individual-color').disabled=!letters.length;$('clear-color').disabled=!letters.length;updateIndividual();
 }
-function updateIndividual(){const index=Number($('sphere-select').value);$('individual-color').value=overrides[index]||(index%7===0?state.accent:state.color);}
+function updateIndividual(){const index=Number($('sphere-select').value);$('individual-color').value=overrides[index]||state.color;}
 function configAt(t,base=state,list=keys){return E.interpolate(list,t,base);}
 function stepWorld(targetWorld,target,base,list=keys){while(targetWorld.time+E.STEP<=target+1e-7){const t=targetWorld.time+E.STEP;targetWorld.step(E.STEP,configAt(t,base,list));}}
 function invalidateTimeline(reason){if(keys.length){keys=[];renderKeys();notice(reason+' 기존 키프레임을 지웠어요.');}cursor=0;timelinePlaying=false;}
@@ -326,8 +349,10 @@ function setResolution(value){
  const [pixelWidth,pixelHeight]=value.split('x').map(Number);
  // Keep scene proportions and motion independent of export pixel density.
  const scale=720/Math.min(pixelWidth,pixelHeight);width=pixelWidth*scale;height=pixelHeight*scale;
- canvas.width=pixelWidth;canvas.height=pixelHeight;$('resolution-label').textContent=pixelWidth+' × '+pixelHeight+' px';$('stage').style.aspectRatio=width+'/'+height;
- $('format-note').textContent=Math.max(pixelWidth,pixelHeight)>3000?'A3/A4 실제 크기로 배치하면 약 300ppi입니다. 큰 판형은 PNG 저장을 권장하며, 영상 지원은 브라우저에 따라 달라요.':'선택한 판형의 픽셀 크기로 PNG와 영상을 저장해요.';fitStage();
+ const deviceLimit=Number(gl?.getParameter(gl.MAX_RENDERBUFFER_SIZE))||8192;
+ const outputScale=Math.min(1,deviceLimit/Math.max(pixelWidth,pixelHeight),Math.sqrt(24000000/(pixelWidth*pixelHeight)));
+ canvas.width=Math.round(pixelWidth*outputScale);canvas.height=Math.round(pixelHeight*outputScale);$('resolution-label').textContent=canvas.width+' × '+canvas.height+' px';$('stage').style.aspectRatio=width+'/'+height;
+ $('format-note').textContent=Math.max(pixelWidth,pixelHeight)>3000?(outputScale<1?'큰 판형은 비율을 유지해 출력 크기를 조정해요. 실제 저장: '+canvas.width+' × '+canvas.height+' px.':'인쇄 크기로 배치하면 약 300ppi입니다.'):'선택한 판형의 픽셀 크기로 PNG와 영상을 저장해요.';fitStage();
 }
 $('resolution').onchange=()=>{edited();setResolution($('resolution').value);resetWorld();notice('화면 비율을 바꿨어요. 키프레임은 새 화면 안에서 재생돼요.');};
 if(typeof ResizeObserver!=='undefined')new ResizeObserver(fitStage).observe($('stage').parentElement);else window.addEventListener('resize',fitStage);
@@ -371,10 +396,16 @@ $('brush-text').addEventListener('input',()=>refreshGoogleGlyphs());
 function refreshGoogleGlyphs(){if(!googleFont)return;document.fonts.load('400 32px '+JSON.stringify(googleFont.family),fontSample()).then(()=>renderer?.clearTextures()).catch(()=>notice('추가 글자의 폰트를 불러오지 못했어요. 인터넷 연결을 확인해주세요.',true));}
 async function installFont(data,name){const face=new FontFace('BalloonCustom','url('+data+')');await face.load();for(const f of document.fonts)if(f.family==='BalloonCustom')document.fonts.delete(f);document.fonts.add(face);customFont={data,name};if(!$('font').querySelector('option[value="custom"]')){const option=document.createElement('option');option.value='custom';$('font').append(option);}$('font').querySelector('option[value="custom"]').textContent=name;$('font-note').textContent=name+' · 이 도구 안에서만 사용해요.';renderer?.clearTextures();}
 $('font-file').onchange=async()=>{if(fontBusy||exporting)return;const file=$('font-file').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('10MB 이하의 폰트를 선택해주세요.');if(!/\.(woff2?|ttf|otf)$/i.test(file.name))throw Error('WOFF, WOFF2, TTF, OTF 폰트를 선택해주세요.');await installFont(await readDataURL(file),file.name);state.font='custom';edited();notice('폰트를 불러왔어요.');}catch(e){notice('폰트를 열지 못했어요. '+e.message,true);}finally{$('font-file').value='';}};
+let pretendardPromise=null;
+async function ensurePretendard(){
+ if(!pretendardPromise)pretendardPromise=(async()=>{const face=new FontFace('Pretendard Variable','url(https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/variable/woff2/PretendardVariable.woff2)',{weight:'100 900'});await face.load();document.fonts.add(face);renderer?.clearTextures();})();
+ try{await pretendardPromise;}catch(e){pretendardPromise=null;throw Error('Pretendard를 불러오지 못했어요. 인터넷 연결을 확인해주세요.');}
+}
+$('font').oninput=async()=>{const chosen=$('font').value;if(fontBusy||exporting)return;const before=state.font;try{if(chosen==='pretendard'){fontBusy=true;notice('Pretendard Variable을 불러오는 중…');await ensurePretendard();}state.font=chosen;edited();$('font-note').textContent=chosen==='pretendard'?'Pretendard Variable · 굵기 100–900':chosen==='custom'?(customFont?.name||'외부 폰트'):'선택한 폰트를 사용해요.';notice('폰트를 적용했어요.');}catch(e){state.font=before;syncUI();notice(e.message,true);}finally{fontBusy=false;}};
 function projectData(){return {format:'balloon-studio',version:2,text:textValue(),config:{...state},keyframes:keys,overrides,resolution:$('resolution').value,duration:duration(),fps:Number($('fps').value),customFont,googleFont,initialPositions,brushText:$('brush-text').value};}
 $('save-project').onclick=()=>{X.download(new Blob([JSON.stringify(projectData(),null,2)],{type:'application/json'}),'balloon-keyframes.json');notice('텍스트·폰트·색상·키프레임 설정을 저장했어요.');};
 function validateProject(p){
- if(!p||p.format!=='balloon-studio'||p.version!==2||typeof p.text!=='string'||p.text.length>240)throw Error('둥실 설정 파일인지 확인해주세요.');
+ if(!p||p.format!=='balloon-studio'||p.version!==2||typeof p.text!=='string')throw Error('둥실 설정 파일인지 확인해주세요.');
  if(p.googleFont!==undefined&&p.googleFont!==null&&(!p.googleFont||!validGoogleFamily(p.googleFont.family)))throw Error('Google 폰트 정보를 확인해주세요.');
  p.config=E.validateConfig(p.config);if(!resolutions.includes(p.resolution)||![24,30,60].includes(p.fps)||!Number.isInteger(p.duration)||p.duration<1||p.duration>30)throw Error('출력 설정을 확인해주세요.');
  if(!Array.isArray(p.keyframes)||p.keyframes.length>100)throw Error('키프레임 형식을 확인해주세요.');const seen=new Set();p.keyframes=p.keyframes.map(k=>{if(!k||typeof k.time!=='number'||!Number.isFinite(k.time)||k.time<0||k.time>p.duration||seen.has(k.time))throw Error('키프레임 시간을 확인해주세요.');seen.add(k.time);return {time:k.time,config:E.validateConfig(k.config)};}).sort((a,b)=>a.time-b.time);
@@ -382,13 +413,23 @@ function validateProject(p){
  if(p.customFont&&((typeof p.customFont.data!=='string'||!/^data:[a-z0-9.+/-]*;base64,[A-Za-z0-9+/=]+$/i.test(p.customFont.data)||p.customFont.data.length>15*1024*1024)||typeof p.customFont.name!=='string'||p.customFont.name.length>255))throw Error('폰트 데이터를 확인해주세요.');
  if(!p.googleFont&&(p.config.font==='google'||p.keyframes.some(k=>k.config.font==='google')))throw Error('Google 폰트 연결 정보가 빠져 있어요.');
  if(!p.customFont&&(p.config.font==='custom'||p.keyframes.some(k=>k.config.font==='custom')))throw Error('사용한 폰트 파일이 빠져 있어요.');if(p.initialPositions!==undefined&&p.initialPositions!==null){const origin=p.initialPositions;
- if(!origin||!['text','row','column','grid','circle'].includes(origin.layout)||!Array.isArray(origin.points)||origin.points.length!==E.letters(p.text).length)throw Error('배치 정보를 확인해주세요.');
+ if(!origin||!['text','row','column','grid','circle','diagonal','zigzag','rings'].includes(origin.layout)||!Array.isArray(origin.points)||origin.points.length!==E.letters(p.text).length)throw Error('배치 정보를 확인해주세요.');
  for(const [index,point]of origin.points.entries()){if(point?.pinned!==undefined&&typeof point.pinned!=='boolean')throw Error('고정 설정을 확인해주세요.');if(point?.anchor!==undefined&&point.anchor!==null&&(!Number.isInteger(point.anchor)||point.anchor<0||point.anchor>=index||!origin.points[point.anchor].pinned))throw Error('풍선 연결을 확인해주세요.');for(const key of ['offsetX','offsetY','offsetZ'])if(point?.[key]!==undefined&&(typeof point[key]!=='number'||!Number.isFinite(point[key])||Math.abs(point[key])>1))throw Error('풍선 간격을 확인해주세요.');}
  for(const point of origin.points)if(!point||['x','y','z'].some(k=>typeof point[k]!=='number'||!Number.isFinite(point[k])||Math.abs(point[k])>.5))throw Error('구의 위치를 확인해주세요.');
  }
- if(p.brushText!==undefined&&(typeof p.brushText!=='string'||p.brushText.length>80))throw Error('그릴 글자를 확인해주세요.');return p;
+ if(p.brushText!==undefined&&(typeof p.brushText!=='string'))throw Error('그릴 글자를 확인해주세요.');return p;
 }
-$('load-project').onchange=async()=>{const file=$('load-project').files[0];if(!file)return;try{if(file.size>16*1024*1024)throw Error('설정 파일은 16MB 이하여야 해요.');const p=validateProject(JSON.parse(await file.text()));if(p.googleFont)await loadGoogleFont(p.googleFont.family);if(p.customFont)await installFont(p.customFont.data,p.customFont.name);else{customFont=null;for(const f of document.fonts)if(f.family==='BalloonCustom')document.fonts.delete(f);$('font').querySelector('option[value="custom"]')?.remove();$('font-note').textContent='기기에 설치된 폰트를 사용해요.';renderer?.clearTextures();}edited();state=p.config;initialPositions=p.initialPositions||null;selected=-1;$('brush-text').value=p.brushText||'오ㄹ류페스티벌';keys=p.keyframes;overrides=p.overrides;$('text').value=p.text;$('resolution').value=p.resolution;setResolution(p.resolution);$('duration').value=p.duration;$('seek').max=p.duration;$('fps').value=p.fps;cursor=0;paused=true;rebuildText();refreshGoogleGlyphs();syncUI();renderKeys();notice('설정을 불러왔어요. 타임라인을 재생해보세요.');}catch(e){notice('설정을 열지 못했어요. '+e.message,true);}finally{$('load-project').value='';}};
+async function applyProject(input){const p=validateProject(JSON.parse(JSON.stringify(input)));if(p.config.font==='pretendard'||p.keyframes.some(k=>k.config.font==='pretendard'))await ensurePretendard();if(p.googleFont)await loadGoogleFont(p.googleFont.family);if(p.customFont)await installFont(p.customFont.data,p.customFont.name);else{customFont=null;for(const f of document.fonts)if(f.family==='BalloonCustom')document.fonts.delete(f);$('font').querySelector('option[value="custom"]')?.remove();$('font-note').textContent='기기에 설치된 폰트를 사용해요.';renderer?.clearTextures();}edited();state=p.config;initialPositions=p.initialPositions||null;selected=-1;$('brush-text').value=p.brushText||'오ㄹ류페스티벌';keys=p.keyframes;overrides=p.overrides;$('text').value=p.text;$('resolution').value=p.resolution;setResolution(p.resolution);$('duration').value=p.duration;$('seek').max=p.duration;$('fps').value=p.fps;cursor=0;paused=true;rebuildText();refreshGoogleGlyphs();syncUI();renderKeys();notice('설정을 불러왔어요. 타임라인을 재생해보세요.');}
+$('load-project').onchange=async()=>{const file=$('load-project').files[0];if(!file||fontBusy||exporting)return;fontBusy=true;try{await applyProject(JSON.parse(await file.text()));}catch(e){notice('설정을 열지 못했어요. '+e.message,true);}finally{fontBusy=false;$('load-project').value='';}};
+const presetKey='balloon-studio-presets-v1';let presets=[];
+try{const saved=JSON.parse(localStorage.getItem(presetKey)||'[]');if(Array.isArray(saved))presets=saved.filter(p=>p&&typeof p.name==='string'&&p.project);}catch(e){}
+function renderPresets(){const list=$('preset-list');list.replaceChildren();presets.forEach((p,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=p.name;list.append(o);});list.disabled=!presets.length;$('preset-apply').disabled=!presets.length;$('preset-delete').disabled=!presets.length;}
+function savePresets(next){try{localStorage.setItem(presetKey,JSON.stringify(next));presets=next;renderPresets();return true;}catch(e){notice('브라우저 저장 공간을 사용할 수 없어요. ‘설정 저장’으로 파일을 내려받아 주세요.',true);return false;}}
+$('preset-add').onclick=()=>{const name=$('preset-name').value.trim()||'프리셋 '+(presets.length+1);if(savePresets([...presets,{name,project:JSON.parse(JSON.stringify(projectData()))}])){$('preset-list').value=String(presets.length-1);notice('프리셋을 이 브라우저에 저장했어요.');}};
+$('preset-apply').onclick=async()=>{if(fontBusy||exporting)return;const p=presets[Number($('preset-list').value)];if(!p)return;fontBusy=true;try{await applyProject(p.project);notice(p.name+' 프리셋을 적용했어요.');}catch(e){notice(e.message,true);}finally{fontBusy=false;}};
+$('preset-delete').onclick=()=>{const i=Number($('preset-list').value);if(presets[i]&&savePresets(presets.filter((p,j)=>j!==i)))notice('프리셋을 삭제했어요.');};
+renderPresets();
+
 function setTool(mode){
  if(gesture)finishGesture(true);toolMode=mode;canvas.dataset.tool=mode;
  $('tool-move').setAttribute('aria-pressed',String(mode==='move'));$('tool-draw').setAttribute('aria-pressed',String(mode==='draw'));$('brush-controls').hidden=mode!=='draw';$('clear-all').hidden=mode!=='draw';
@@ -405,7 +446,7 @@ function drawSelection(){
 }
 function stamp(point){
  if(gesture.added>=gesture.chars.length)return false;
- const char=gesture.chars[gesture.added];if(textValue().length+char.length>240){gesture.full=true;return false;}
+ const char=gesture.chars[gesture.added];
  $('text').value+=char;const letter=E.letters(textValue()).at(-1);world.particles.push({...letter,x:0,y:0,z:0,tx:0,ty:0,vx:0,vy:0,vz:0,spin:0});
  E.moveParticle(world,state,letter.index,point.x,point.y);
  const added=world.particles[letter.index];
@@ -419,7 +460,6 @@ canvas.addEventListener('pointerdown',event=>{
  if(toolMode==='move'&&hit<0){selected=-1;drawSelection();return;}
  const chars=E.letters($('brush-text').value).map(p=>p.char);
  if(toolMode==='draw'&&!chars.length){notice('먼저 ‘그릴 글자’를 입력해주세요.',true);return;}
- if(toolMode==='draw'&&textValue().length>=240){notice('최대 240자까지 만들 수 있어요. 텍스트를 줄여주세요.',true);return;}
  const before={world:world.snapshot(),text:textValue(),selected,origin:initialPositions,paused,cursor,timelinePlaying};
  edited();canvas.focus({preventScroll:true});canvas.setPointerCapture(event.pointerId);canvas.dataset.dragging='true';
  gesture={id:event.pointerId,mode:toolMode,before,point,remainder:0,spacing:E.radius(state,width,height,world.particles.length)*2.2,chars,added:0,changed:false};
@@ -441,7 +481,7 @@ function finishGesture(cancel=false){
  if(!gesture)return;const old=gesture;gesture=null;canvas.dataset.dragging='false';
  if(cancel){world.restore(old.before.world);$('text').value=old.before.text;selected=old.before.selected;initialPositions=old.before.origin;paused=old.before.paused;cursor=old.before.cursor;timelinePlaying=old.before.timelinePlaying;rebuildText(false);notice('드래그를 취소했어요.');}
  else if(old.changed){rememberPositions();cursor=0;
-  if(old.mode==='draw'){invalidateTimeline('글자 구가 추가되어');notice(old.added+'개의 구를 추가했어요.'+(old.full?' 최대 240자에 도달했어요.':'')+' 첫 구는 고정했어요. 손을 떼고 다시 그리면 글자가 처음부터 생성돼요.');}
+  if(old.mode==='draw'){invalidateTimeline('글자 구가 추가되어');notice(old.added+'개의 구를 추가했어요.'+' 첫 구는 고정했어요. 손을 떼고 다시 그리면 글자가 처음부터 생성돼요.');}
   else notice('구를 옮겼어요. 이 배치가 재생·저장의 시작점이에요.');
  }
  if(canvas.hasPointerCapture?.(old.id))canvas.releasePointerCapture(old.id);accumulator=0;syncUI();drawSelection();
@@ -470,13 +510,13 @@ function makeRenderer(){
  attribute('position',points,3);attribute('uv',uvs,2);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),gl.STATIC_DRAW);gl.enable(gl.DEPTH_TEST);
  let signature='',textures=new Map();
  function clearTextures(){for(const t of textures.values())gl.deleteTexture(t);textures.clear();signature='';}
- function texture(char,config){if(textures.has(char))return textures.get(char);const c=document.createElement('canvas');c.width=1024;c.height=512;const ctx=c.getContext('2d');ctx.fillStyle='#000';ctx.font=Math.round(config.weight/100)*100+' '+Math.round(215*config.typeSize/100)+'px '+fonts[config.font];ctx.textAlign='left';ctx.textBaseline='alphabetic';let metrics=ctx.measureText?.(char);
- if(metrics&&metrics.width>500){ctx.font=Math.round(config.weight/100)*100+' '+Math.round(215*config.typeSize/100*500/metrics.width)+'px '+fonts[config.font];metrics=ctx.measureText(char);}
+ function texture(char,config){if(textures.has(char))return textures.get(char);const c=document.createElement('canvas');c.width=1024;c.height=512;const ctx=c.getContext('2d');ctx.fillStyle='#000';ctx.font=Math.round(config.weight)+' '+Math.round(215*config.typeSize/100)+'px '+fonts[config.font];ctx.textAlign='left';ctx.textBaseline='alphabetic';let metrics=ctx.measureText?.(char);
+ if(metrics&&metrics.width>500){ctx.font=Math.round(config.weight)+' '+Math.round(215*config.typeSize/100*500/metrics.width)+'px '+fonts[config.font];metrics=ctx.measureText(char);}
  if(metrics&&Number.isFinite(metrics.actualBoundingBoxLeft)&&Number.isFinite(metrics.actualBoundingBoxAscent)){ctx.fillText(char,512+(metrics.actualBoundingBoxLeft-metrics.actualBoundingBoxRight)/2,256+(metrics.actualBoundingBoxAscent-metrics.actualBoundingBoxDescent)/2);}else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(char,512,256,500);} const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);textures.set(char,t);return t;}
  function draw(sim,config){
-  const nextSignature=[Math.round(215*config.typeSize/100),Math.round(config.weight/100),config.font].join('|');if(nextSignature!==signature){clearTextures();signature=nextSignature;}
+  const nextSignature=[Math.round(215*config.typeSize/100),Math.round(config.weight),config.font].join('|');if(nextSignature!==signature){clearTextures();signature=nextSignature;}
   gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...bg,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,sim.particles.length);
-  for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){const turn=s.turn||0,profile=E.rotationProfile(s.index);gl.uniform3f(uniforms.center,s.x,s.y,s.z);gl.uniform1f(uniforms.radius,r);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.angles,Math.sin(turn)*profile.tilt,turn-.42*Math.sin(2*turn),Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.index]||(s.index%7===0?config.accent:config.color)));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
+  for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){const turn=s.turn||0,profile=E.rotationProfile(s.index);gl.uniform3f(uniforms.center,s.x,s.y,s.z);gl.uniform1f(uniforms.radius,r);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.angles,Math.sin(turn)*profile.tilt,turn-.42*Math.sin(2*turn),Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.index]||config.color));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
    // A visible body hides rear lettering; a hidden body reveals its mirrored back side.
    gl.uniform1f(uniforms.letteringPass,0);
    if(config.visible)gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
@@ -504,7 +544,7 @@ const format=X.videoFormat();$('record').textContent=format?(format.extension.to
 $('export-note').textContent=(format?format.extension==='mp4'?'이 브라우저는 MP4 녹화를 지원해요.':'이 브라우저에서는 WebM 영상으로 저장돼요.':'이 브라우저는 영상 녹화를 지원하지 않아요. PNG 저장을 이용해주세요.')+' 영상은 실시간 녹화, PNG는 정확한 프레임 간격으로 저장해요. PNG는 최대 600프레임.';
 function setBusy(value){exporting=value;document.body.classList.toggle('busy',value);$('cancel-export').hidden=!value;$('progress').hidden=!value;for(const el of document.querySelectorAll('button,input,select,textarea')){if(value){el.dataset.wasDisabled=String(el.disabled);if(el.id!=='cancel-export')el.disabled=true;}else if(el.dataset.wasDisabled!==undefined){el.disabled=el.dataset.wasDisabled==='true';delete el.dataset.wasDisabled;}}syncUI();}
 $('cancel-export').onclick=()=>exportController?.abort();
-$('snapshot').onclick=async()=>{if(!renderer)return;try{renderer.draw(world,state);X.download(await X.png(canvas),'balloon-frame.png');notice('현재 화면을 PNG로 저장했어요.');}catch(e){notice(e.message,true);}};
+$('snapshot').onclick=async()=>{if(!renderer)return;try{if(state.font==='pretendard')await ensurePretendard();renderer.draw(world,state);X.download(await X.png(canvas),'balloon-frame.png');notice('현재 화면을 PNG로 저장했어요.');}catch(e){notice(e.message,true);}};
 async function exportAnimation(kind){
  if(fontBusy){notice('폰트 연결이 끝난 뒤 저장해주세요.',true);return;}if(!renderer||exporting||gesture)return;
  const fps=Number($('fps').value),length=duration(),total=Math.round(length*fps);
@@ -512,6 +552,7 @@ async function exportAnimation(kind){
  const saved={config:{...state},world:world.snapshot(),paused,cursor,timelinePlaying};const base={...state},list=keys.map(k=>({time:k.time,config:{...k.config}}));const sim=createWorld(configAt(0,base,list));
  seekToken++;seeking=false;exportController=new AbortController();const signal=exportController.signal;setBusy(true);$('progress').value=0;
  try{
+  if(base.font==='pretendard'||list.some(k=>k.config.font==='pretendard'))await ensurePretendard();
   if(googleFont)await document.fonts.load('400 32px '+JSON.stringify(googleFont.family),fontSample());
   await document.fonts.ready;
   if(kind==='png'){
@@ -532,6 +573,6 @@ $('record').onclick=()=>exportAnimation('video');$('frames').onclick=()=>exportA
 // Reuse visible configuration actions for browsers that support WebMCP.
 if(!renderer)for(const id of ['record','frames','snapshot','timeline-play'])$(id).disabled=true;
 const context=document.modelContext;
-if(context?.registerTool){try{Promise.resolve(context.registerTool({name:'configure_moving_identity',description:'텍스트, 바람, 충돌, 정렬, 글자와 구 색상을 조정합니다. 파일 저장이나 녹화는 시작하지 않습니다.',inputSchema:{type:'object',properties:{text:{type:'string',maxLength:240},config:{type:'object',properties:Object.fromEntries(Object.entries(E.defaults).map(([k,v])=>[k,E.ranges[k]?{type:'number',minimum:E.ranges[k][0],maximum:E.ranges[k][1]}:{type:typeof v}])),additionalProperties:false}},additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(exporting||gesture)throw Error('저장이나 드래그가 끝난 뒤 조절해주세요.');if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['text','config'].includes(k)))throw Error('설정 형식을 확인해주세요.');if(input.text!==undefined&&(typeof input.text!=='string'||input.text.length>240))throw Error('텍스트를 확인해주세요.');const next=E.validateConfig({...state,...input.config});if(next.font==='google'&&!googleFont)throw Error('먼저 Google 폰트를 연결해주세요.');if(next.font==='custom'&&!customFont)throw Error('먼저 폰트를 불러와주세요.');edited();const layoutChanged=next.layout!==state.layout;state=next;if(input.text!==undefined){initialPositions=null;selected=-1;$('text').value=input.text;invalidateTimeline('텍스트 구성이 바뀌어');overrides={};rebuildText();}else if(layoutChanged){initialPositions=null;world.arrange(state);}syncUI();return {text:textValue(),count:world.particles.length,config:{...state}};}})).catch(()=>{});}catch(e){}}
+if(context?.registerTool){try{Promise.resolve(context.registerTool({name:'configure_moving_identity',description:'텍스트, 바람, 충돌, 정렬, 글자와 구 색상을 조정합니다. 파일 저장이나 녹화는 시작하지 않습니다.',inputSchema:{type:'object',properties:{text:{type:'string',},config:{type:'object',properties:Object.fromEntries(Object.entries(E.defaults).map(([k,v])=>[k,E.ranges[k]?{type:'number',minimum:E.ranges[k][0],maximum:E.ranges[k][1]}:{type:typeof v}])),additionalProperties:false}},additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(exporting||gesture)throw Error('저장이나 드래그가 끝난 뒤 조절해주세요.');if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['text','config'].includes(k)))throw Error('설정 형식을 확인해주세요.');if(input.text!==undefined&&(typeof input.text!=='string'))throw Error('텍스트를 확인해주세요.');const next=E.validateConfig({...state,...input.config});if(next.font==='google'&&!googleFont)throw Error('먼저 Google 폰트를 연결해주세요.');if(next.font==='custom'&&!customFont)throw Error('먼저 폰트를 불러와주세요.');edited();const layoutChanged=next.layout!==state.layout;state=next;if(input.text!==undefined){initialPositions=null;selected=-1;$('text').value=input.text;invalidateTimeline('텍스트 구성이 바뀌어');overrides={};rebuildText();}else if(layoutChanged){initialPositions=null;world.arrange(state);}syncUI();return {text:textValue(),count:world.particles.length,config:{...state}};}})).catch(()=>{});}catch(e){}}
 </script>
 </body></html>

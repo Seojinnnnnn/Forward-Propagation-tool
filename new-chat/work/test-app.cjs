@@ -10,7 +10,8 @@ elements.text.value='오류 페스티벌';elements.resolution.value='1280x720';e
 const gl=new Proxy({getShaderParameter:()=>true,getProgramParameter:()=>true},{get:(o,k)=>k in o?o[k]:(()=>({}))});elements.canvas.getContext=()=>gl;
 const fontSet=new Set();fontSet.ready=Promise.resolve();let registered,raf,downloaded=[];
 const document={getElementById:id=>{assert(elements[id],'Missing UI '+id);return elements[id];},createElement:tag=>new Element(tag),fonts:fontSet,body:{classList:{toggle(){}}},querySelectorAll:()=>Object.values(elements).filter(e=>['BUTTON','INPUT','SELECT','TEXTAREA'].includes(e.tagName)),modelContext:{registerTool:t=>registered=t}};
-const context={BalloonEngine:E,BalloonExport:{...X,videoFormat:()=>null,download:(blob,name)=>downloaded.push({blob,name}),png:async()=>new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64')],{type:'image/png'})},document,matchMedia:()=>({matches:false}),ResizeObserver:class{observe(){}},window:{addEventListener(){}},requestAnimationFrame:f=>{raf=f;return 1;},performance,console,setTimeout,AbortController,DOMException,Blob};vm.createContext(context);vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);
+const presetStorage=new Map();
+const context={localStorage:{getItem:k=>presetStorage.get(k)||null,setItem:(k,v)=>presetStorage.set(k,v)},FontFace:class{constructor(family){this.family=family;}async load(){return this;}},BalloonEngine:E,BalloonExport:{...X,videoFormat:()=>null,download:(blob,name)=>downloaded.push({blob,name}),png:async()=>new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64')],{type:'image/png'})},document,matchMedia:()=>({matches:false}),ResizeObserver:class{observe(){}},window:{addEventListener(){}},requestAnimationFrame:f=>{raf=f;return 1;},performance,console,setTimeout,AbortController,DOMException,Blob};vm.createContext(context);vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);
 const evaluate=s=>vm.runInContext(s,context);
 (async()=>{
  await Promise.resolve();assert.equal(elements.count.textContent,'6개의 구');raf(16);
@@ -26,5 +27,15 @@ const evaluate=s=>vm.runInContext(s,context);
  const count=downloaded.length;elements.duration.value=30;elements.fps.value=60;await evaluate("exportAnimation('png')");assert.equal(downloaded.length,count);assert(elements.notice.textContent.includes('600'));
  // Cancellation must restore the live composition and avoid partial downloads.
  elements.duration.value=1;elements.fps.value=24;const task=evaluate("exportAnimation('png')");evaluate('exportController.abort()');await task;assert.equal(downloaded.length,count);assert.equal(evaluate('exporting'),false);
+ // Unlimited main/brush text and new layouts round-trip through saved projects.
+ const longText='가'.repeat(301);context.longText=longText;registered.execute({text:longText});assert.equal(evaluate('world.particles.length'),301);
+ elements['brush-text'].value='나'.repeat(101);context.largeProject=evaluate('projectData()');assert.equal(evaluate('validateProject(largeProject).brushText.length'),101);
+ for(const layout of ['diagonal','zigzag','rings']){elements.layout.value=layout;elements.layout.onchange();assert(evaluate('world.particles.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))'));context.layoutProject=evaluate('projectData()');assert.equal(evaluate('validateProject(layoutProject).config.layout'),layout);}
+ elements.font.value='pretendard';await elements.font.oninput();assert.equal(evaluate('state.font'),'pretendard');assert([...fontSet].some(f=>f.family==='Pretendard Variable'));
+ elements['preset-name'].value='테스트 프리셋';elements['preset-add'].onclick();assert.equal(evaluate('presets.length'),1);assert(presetStorage.size);
+ registered.execute({text:'변경'});elements['preset-list'].value='0';await elements['preset-apply'].onclick();assert.equal(elements.text.value,longText);assert.equal(evaluate('state.font'),'pretendard');assert.equal(evaluate('state.layout'),'rings');
+ elements['preset-list'].value='0';elements['preset-delete'].onclick();assert.equal(evaluate('presets.length'),0);
+ const legacy=E.validateConfig({...E.defaults,accent:'#ade8eb'});assert(!('accent' in legacy));
+ console.log('PASS: unlimited text, added layouts, variable font, preset save/apply/delete, legacy colors.');
  console.log('PASS: application initialization, controls, WebMCP mock, keyframes/seek, alignment, individual color, settings export/validation, text invalidation, PNG sequence, limits, cancellation, scene restoration.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

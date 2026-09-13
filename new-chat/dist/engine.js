@@ -2,20 +2,21 @@
 (function(root){
 'use strict';
 const STEP=1/120;
-const defaults={float:32,speed:28,rotation:30,rotationShare:30,size:300,typeSize:180,weight:500,font:'gothic',visible:true,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,layout:'text',color:'#d9ff96',accent:'#ade8eb',ink:'#211c19',background:'#ffffff'};
-const ranges={float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[40,220],weight:[300,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
-const colors=['color','accent','ink','background'];
+const defaults={float:32,speed:28,rotation:30,rotationShare:30,size:300,typeSize:180,weight:500,font:'gothic',visible:true,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
+const ranges={float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[40,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
+const colors=['color','ink','background'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function validateConfig(input){
  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('설정 형식을 확인해주세요.');
  const out={...defaults};
  for(const [key,value]of Object.entries(input)){
+  if(key==='accent')continue; // Older saved projects remain readable.
   if(!Object.prototype.hasOwnProperty.call(defaults,key))throw Error('알 수 없는 설정입니다: '+key);
   if(ranges[key]){const [a,b]=ranges[key];if(typeof value!=='number'||!Number.isFinite(value)||value<a||value>b)throw Error('설정 범위를 확인해주세요: '+key);}
   else if(colors.includes(key)){if(typeof value!=='string'||!/^#[0-9a-f]{6}$/i.test(value))throw Error('색상 형식을 확인해주세요.');}
   else if(['visible','collision','hold'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
-  else if(key==='layout'&&!['text','row','column','grid','circle'].includes(value))throw Error('정렬 방식을 확인해주세요.');
-  else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google'].includes(value))throw Error('폰트를 확인해주세요.');
+  else if(key==='layout'&&!['text','row','column','grid','circle','diagonal','zigzag','rings'].includes(value))throw Error('정렬 방식을 확인해주세요.');
+  else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google','pretendard'].includes(value))throw Error('폰트를 확인해주세요.');
   out[key]=value;
  }
  return out;
@@ -82,7 +83,19 @@ class World{
  arrange(config){
   const ps=this.particles,n=ps.length,w=this.width,h=this.height,r=radius(config,w,h,n),margin=r+30;this.layout=config.layout;
   let targets=[];
-  if(config.layout==='circle'){const ring=Math.min(w,h)*.36;targets=ps.map((s,i)=>({x:n===1?0:Math.sin(i/n*Math.PI*2)*ring,y:n===1?0:Math.cos(i/n*Math.PI*2)*ring}));}
+  if(['diagonal','zigzag','rings'].includes(config.layout)){
+   const bx=Math.max(0,w/2-margin),by=Math.max(0,h/2-margin);
+   targets=ps.map((p,i)=>{const u=n<2?.5:i/(n-1);
+    if(config.layout==='diagonal')return {x:(u*2-1)*bx,y:(1-u*2)*by};
+    if(config.layout==='zigzag')return {x:n<2?0:(i%2?1:-1)*bx*.8,y:(1-u*2)*by};
+    if(i===0)return {x:0,y:0};
+    const ring=Math.ceil((Math.sqrt(1+4*i/3)-1)/2),start=1+3*(ring-1)*ring;
+    const slots=Math.min(6*ring,n-start),angle=(i-start)/slots*Math.PI*2;
+    const rings=Math.max(1,Math.ceil((Math.sqrt(1+4*(n-1)/3)-1)/2));
+    return {x:Math.sin(angle)*bx*ring/rings,y:Math.cos(angle)*by*ring/rings};
+   });
+  }
+  else if(config.layout==='circle'){const ring=Math.min(w,h)*.36;targets=ps.map((s,i)=>({x:n===1?0:Math.sin(i/n*Math.PI*2)*ring,y:n===1?0:Math.cos(i/n*Math.PI*2)*ring}));}
   else{
    const cols=config.layout==='row'?Math.max(1,n):config.layout==='column'?1:Math.max(1,Math.ceil(Math.sqrt(n*w/h)));
    let offset=0,prev=-1;const rows=new Map();
@@ -136,7 +149,14 @@ class World{
   }
   // Resolve screen-space contacts so depth cannot hide overlapping silhouettes.
   for(let iteration=0;iteration<(config.collision?10:1);iteration++){
-  if(config.collision)for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){
+  const pairs=[];
+  if(config.collision){const cells=new Map(),cellSize=Math.max(.001,r*2.1);
+   for(let i=0;i<ps.length;i++){const x=Math.floor(ps[i].x/cellSize),y=Math.floor(ps[i].y/cellSize);
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const j of cells.get((x+dx)+','+(y+dy))||[])pairs.push([j,i]);
+    const key=x+','+y;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(i);
+   }
+  }
+  for(const [i,j] of pairs){
    const a=ps[i],b=ps[j];const wa=a.pinned?0:1,wb=b.pinned?0:1,total=wa+wb;if(!total)continue;let dx=b.x-a.x,dy=b.y-a.y,dz=0;let distance=Math.hypot(dx,dy);
    if(distance>=r*2.1)continue;
    if(distance<1e-6){dx=Math.cos(i+j);dy=Math.sin(i+j);dz=0;distance=Math.hypot(dx,dy);}
