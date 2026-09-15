@@ -27,9 +27,100 @@ main{grid-template-columns:260px minmax(0,1fr) 300px}#motion-controls{grid-colum
 .range-value{font:inherit;font-size:13px;font-variant-numeric:tabular-nums;width:66px;min-width:0;flex-shrink:0;text-align:right;padding:5px 4px 5px 7px;border:1px solid #cdd3c4;border-radius:4px;background:#fff;color:#25221f}.wind-grid .range-value{width:58px}.time-controls .range-value{width:74px}.canvas-format{min-width:0}.canvas-format>label{display:flex;align-items:center;gap:8px;font-size:13px}.canvas-format select{width:235px;max-width:100%;font-size:13px}.canvas-toolbar>span{white-space:nowrap}article>#format-note{margin:0 0 10px;font-size:12px}.canvas-toolbar{gap:10px}.canvas-toolbar .toolbar-actions{margin-left:auto}@media(max-width:1100px){.canvas-format{width:100%}.canvas-format select{flex:1;width:100%;min-width:0}}
 
 .builtin-flight-preset{margin-bottom:16px}
+
+/* Collapsible workspace and interface themes. Artwork colors stay untouched. */
+body{--ui-bg:#fff;--ui-panel:#fff;--ui-field:#fff;--ui-text:#25221f;--ui-muted:#6d7268;--ui-border:#d9ddd3;--ui-stage:#eef0eb;--ui-hover:#e8efdd;background:var(--ui-bg);color:var(--ui-text)}
+body.night-mode{color-scheme:dark;--ui-bg:#171918;--ui-panel:#202320;--ui-field:#292d29;--ui-text:#ecefe7;--ui-muted:#abb3a4;--ui-border:#41483e;--ui-stage:#101310;--ui-hover:#394631}
+main{--left-width:260px;--right-width:300px;grid-template-columns:var(--left-width) minmax(0,1fr) var(--right-width)}
+body.left-panel-hidden main{--left-width:0px}body.right-panel-hidden main{--right-width:0px}
+.workspace-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px;flex-shrink:0}
+#toggle-theme{margin-left:auto}
+aside,.timeline{background:var(--ui-panel)}
+article{background:var(--ui-bg)}
+.stage-wrap{background:var(--ui-stage)}
+body :is(aside,section,details,.timeline,.export-row,.color-grid label,.stage-wrap){border-color:var(--ui-border)}
+body :is(button,.button-label,select,textarea,input[type=number],input[type=text],input[type=color],#google-family,.preset-panel input,.brush-label input){background:var(--ui-field);color:var(--ui-text);border-color:var(--ui-border)}
+body :is(button,.button-label):hover{background:var(--ui-hover)}
+body :is(.hint,.section-label,.canvas-toolbar,.resolution,.live-caption,.interaction-hint,.toggle-row small,summary>span,.export-row label){color:var(--ui-muted)}
+body .section-label b{color:var(--ui-text)}
+body button.primary{background:#d9ff96;color:#283517;border-color:#bedc88}
+body .flight-preset-button,body .tool-modes button[aria-pressed="true"]{background:var(--ui-hover);color:var(--ui-text);border-color:var(--ui-border)}
+body.night-mode input[type=range]{background:linear-gradient(to right,#a2bc80 var(--fill,45%),#454d40 var(--fill,45%))}
+body.night-mode input[type=range]::-webkit-slider-thumb{background:#d9ff96;border-color:#292d29;box-shadow:0 0 0 1px #a2bc80}
+body.night-mode .key-chip{background:#303d28;border-color:#526347}
+body.night-mode #notice{color:#bdd69e}body.night-mode #notice.error{color:#ffb0a0}
+body.wide-canvas .interaction-hint,body.wide-canvas .live-caption{display:none}
+body.wide-canvas .stage-wrap{min-height:230px}
+@media(min-width:1600px){main{--left-width:280px;--right-width:320px}}
+@media(min-width:901px) and (max-width:1100px){main{--left-width:220px;--right-width:260px}}
+@media(max-width:900px){body.wide-canvas article{height:100dvh;min-height:540px;overflow:auto}body.wide-canvas .stage-wrap{height:auto;flex:1} .workspace-controls button{font-size:12px;padding:8px}#toggle-theme{margin-left:0}}
+
+/* Edge handles remain reachable with either panel folded. */
+main{position:relative}
+body .panel-handle{position:fixed;top:50dvh;transform:translateY(-50%);z-index:20;width:24px;height:72px;padding:0;font-size:25px;line-height:1;background:var(--ui-panel);border:1px solid var(--ui-border);box-shadow:0 2px 8px #00000012;touch-action:manipulation}
+.panel-handle-left{left:260px;border-radius:0 8px 8px 0}
+.panel-handle-right{right:300px;border-radius:8px 0 0 8px}
+body.left-panel-hidden .panel-handle-left{left:0}
+body.right-panel-hidden .panel-handle-right{right:0}
+@media(min-width:1600px){.panel-handle-left{left:280px}.panel-handle-right{right:320px}}
+@media(min-width:901px) and (max-width:1100px){.panel-handle-left{left:220px}.panel-handle-right{right:260px}}
+@media(max-width:900px){
+ .panel-handle-left{left:min(280px,calc(100vw - 48px))}.panel-handle-right{right:min(300px,calc(100vw - 48px))}
+ #motion-controls,#controls{position:fixed;top:0;bottom:0;z-index:19;overflow-y:auto;border:1px solid var(--ui-border)}
+ #motion-controls{left:0;width:min(280px,calc(100vw - 48px))}
+ #controls{right:0;width:min(300px,calc(100vw - 48px))}
+ main>article{height:100dvh;min-height:540px;overflow:auto}
+ main>article .stage-wrap{height:auto;flex:1;min-height:230px}
+}
+
+.canvas-tools .theme-toggle{margin-left:0}#toggle-theme{margin:0}
+
+/* Neutral interface palette, independent of artwork colors. */
+body{--ui-bg:#fff;--ui-panel:#fff;--ui-field:#fff;--ui-text:#252525;--ui-muted:#707070;--ui-border:#dadada;--ui-stage:#eee;--ui-hover:#e8e8e8}
+body.night-mode{--ui-bg:#181818;--ui-panel:#222;--ui-field:#2c2c2c;--ui-text:#eee;--ui-muted:#b0b0b0;--ui-border:#444;--ui-stage:#111;--ui-hover:#3b3b3b}
+body button.primary{background:#333;color:#fff;border-color:#333}
+body.night-mode button.primary{background:#e0e0e0;color:#222;border-color:#e0e0e0}
+body input[type=range]{background:linear-gradient(to right,#888 var(--fill,45%),#ddd var(--fill,45%))}
+body.night-mode input[type=range]{background:linear-gradient(to right,#aaa var(--fill,45%),#484848 var(--fill,45%))}
+body input[type=range]::-webkit-slider-thumb{background:#333;border-color:#fff;box-shadow:0 0 0 1px #555}
+body.night-mode input[type=range]::-webkit-slider-thumb{background:#ddd;border-color:#2c2c2c;box-shadow:0 0 0 1px #aaa}
+body input[type=range]::-moz-range-thumb{background:#555;border-color:#fff}
+body.night-mode input[type=range]::-moz-range-thumb{background:#ddd;border-color:#2c2c2c}
+body input[type=checkbox]{background:#ccc}
+body input[type=checkbox]:checked{background:#555}
+body.night-mode input[type=checkbox]{background:#505050}
+body.night-mode input[type=checkbox]:checked{background:#999}
+body .live-caption i{background:#888}
+body .key-chip{background:#eee;border-color:#ccc}
+body .key-chip.active{background:#ddd;border-color:#888}
+body.night-mode .key-chip{background:#333;border-color:#555}
+body.night-mode .key-chip.active{background:#484848;border-color:#999}
+body #notice{color:#555}body.night-mode #notice{color:#ccc}
+body #notice.error{color:#aa4532}body.night-mode #notice.error{color:#ffb0a0}
+body progress{accent-color:#888}
+body .corner{border-color:#aaa}
+body #selection-ring{stroke:#666}
+body :is(#empty,#error,summary:after,.panel-foot){color:var(--ui-muted)}
+body output{background:var(--ui-hover);color:var(--ui-text)}
+body .file-label{border-color:var(--ui-border)}
+body :focus-visible,body .button-label:focus-within,body .file-label:focus-within{outline-color:#888}
+body textarea:focus{border-color:#888}
+
+/* Compact controls and a quieter canvas toolbar. */
+body button,body .button-label{font-size:12px;padding:7px 10px;gap:4px}
+body .preset-panel button{padding:7px 8px}
+body .flight-preset-button{padding:9px 10px}
+body .canvas-toolbar button,body .canvas-tools button{font-size:12px;padding:7px 10px}
+body .timeline-heading button,body .timeline-heading .button-label{padding:6px 8px}
+body .key-chip button{padding:4px 5px}
+body .panel-handle{width:24px;height:72px;padding:0;font-size:25px}
+#format-note,#interaction-hint{display:none}
+.canvas-tools{margin-bottom:8px}
 </style></head>
 <body>
 <main>
+<button id="toggle-left-panel" class="panel-handle panel-handle-left" aria-controls="motion-controls" aria-expanded="true" aria-label="왼쪽 패널 접기" title="왼쪽 패널 접기">‹</button>
+<button id="toggle-right-panel" class="panel-handle panel-handle-right" aria-controls="controls" aria-expanded="true" aria-label="오른쪽 패널 접기" title="오른쪽 패널 접기">›</button>
 <aside id="motion-controls" aria-label="움직임과 바람"><details open><summary>움직임 · 바람</summary><div class="detail-body"><label class="toggle-row" for="flowThrough"><span>아래에서 위로 날리기<small>위아래를 열고 모든 풍선을 화면 아래에서 출발시켜요.</small></span><input id="flowThrough" type="checkbox" role="switch"></label><button id="restart-flight" class="restart-flight">아래에서 다시 시작</button><label class="toggle-row" for="openTop"><span>위로 날아가기<small>켜면 위쪽이 열리고 떠올라요. 고정점에 연결한 풍선은 그대로 묶여 있어요.</small></span><input id="openTop" type="checkbox" role="switch"></label><p class="hint">화면 밖으로 나간 풍선은 ‘정렬하기’로 다시 모을 수 있어요.</p>
 <label class="range-label" for="float">두둥실 <input id="float-out" class="range-value" type="number" min="0" max="100" step="1" value="32" aria-label="두둥실 수치"></label><input id="float" type="range" min="0" max="100" value="32">
 <label class="range-label" for="speed">움직임 속도 <input id="speed-out" class="range-value" type="number" min="0" max="100" step="1" value="28" aria-label="움직임 속도 수치"></label><input id="speed" type="range" min="0" max="100" value="28">
@@ -62,11 +153,12 @@ main{grid-template-columns:260px minmax(0,1fr) 300px}#motion-controls{grid-colum
 </div></details><div class="panel-foot">빛과 그림자 없이, 형태와 움직임만.</div>
 </aside>
 <article>
-<div class="canvas-toolbar"><div class="canvas-format"><label for="resolution">판형 <select id="resolution"><optgroup label="가로 화면"><option value="1280x720">HD 가로 · 1280 × 720</option><option value="1920x1080">Full HD 가로 · 1920 × 1080</option></optgroup><optgroup label="A0~A4 / 인쇄용"><option value="9933x14043">A0 세로 · 9933 × 14043</option><option value="14043x9933">A0 가로 · 14043 × 9933</option><option value="7016x9933">A1 세로 · 7016 × 9933</option><option value="9933x7016">A1 가로 · 9933 × 7016</option><option value="4960x7016">A2 세로 · 4960 × 7016</option><option value="7016x4960">A2 가로 · 7016 × 4960</option><option value="3508x4960">A3 세로 · 3508 × 4960</option><option value="4960x3508">A3 가로 · 4960 × 3508</option><option value="2480x3508">A4 세로 · 2480 × 3508</option><option value="3508x2480">A4 가로 · 3508 × 2480</option></optgroup><optgroup label="인스타그램"><option value="1080x1080">정사각 피드 · 1080 × 1080</option><option value="1080x1350" selected>세로 피드 4:5 · 1080 × 1350</option><option value="1080x1440">세로 피드 3:4 · 1080 × 1440</option><option value="1080x1920">스토리 · 릴스 9:16 · 1080 × 1920</option></optgroup><optgroup label="세로 화면"><option value="720x1280">HD 세로 · 720 × 1280</option><option value="1200x1800">세로 포스터 2:3 · 1200 × 1800</option><option value="1080x2160">긴 세로 1:2 · 1080 × 2160</option></optgroup></select></label></div><span>라이브 캔버스 <span class="resolution" id="resolution-label"></span></span><div class="toolbar-actions"><button id="snapshot">PNG 한 장</button><button id="pause" aria-pressed="false">Ⅱ 일시정지</button><button id="replay-zero">↺ 0초부터 재생</button></div></div>
-<p class="hint" id="format-note"></p><div class="canvas-tools" aria-label="캔버스 편집 도구"><div class="tool-modes" role="group" aria-label="마우스 모드"><button id="tool-move" aria-pressed="true">선택 · 이동</button><button id="tool-draw" aria-pressed="false">드래그로 생성</button></div><label class="quick-toggle" for="visible-canvas"><input id="visible-canvas" type="checkbox" role="switch" checked> 구 보이기</label><label class="brush-label" for="brush-text" id="brush-controls" hidden>그릴 글자 <input id="brush-text" type="text" value="오ㄹ류페스티벌" spellcheck="false"></label><button id="clear-all" hidden>전체 지우기</button></div><p id="interaction-hint" class="interaction-hint">구를 클릭하고 드래그해서 옮기세요. 선택 후 방향키로도 이동할 수 있어요.</p><div class="stage-wrap"><div id="stage"><canvas id="canvas" tabindex="0" aria-label="구 선택 및 이동 캔버스. 방향키로 선택한 구 이동, Escape로 드래그 취소." aria-describedby="interaction-hint"></canvas><svg id="selection-overlay" aria-hidden="true"><circle id="selection-ring" cx="0" cy="0" r="0" visibility="hidden"/></svg><div id="empty" hidden>어떤 글자를 띄워볼까요?</div><div id="error" hidden>3D 화면을 시작할 수 없어요. 브라우저의 하드웨어 가속을 확인해주세요.</div><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span></div></div>
+
+<div class="canvas-toolbar"><div class="canvas-format"><label for="resolution">판형 <select id="resolution"><optgroup label="가로 화면"><option value="1280x720">HD 가로 · 1280 × 720</option><option value="1920x1080">Full HD 가로 · 1920 × 1080</option></optgroup><optgroup label="A0~A4 / 인쇄용"><option value="9933x14043">A0 세로 · 9933 × 14043</option><option value="14043x9933">A0 가로 · 14043 × 9933</option><option value="7016x9933">A1 세로 · 7016 × 9933</option><option value="9933x7016">A1 가로 · 9933 × 7016</option><option value="4960x7016">A2 세로 · 4960 × 7016</option><option value="7016x4960">A2 가로 · 7016 × 4960</option><option value="3508x4960">A3 세로 · 3508 × 4960</option><option value="4960x3508">A3 가로 · 4960 × 3508</option><option value="2480x3508">A4 세로 · 2480 × 3508</option><option value="3508x2480">A4 가로 · 3508 × 2480</option></optgroup><optgroup label="인스타그램"><option value="1080x1080">정사각 피드 · 1080 × 1080</option><option value="1080x1350" selected>세로 피드 4:5 · 1080 × 1350</option><option value="1080x1440">세로 피드 3:4 · 1080 × 1440</option><option value="1080x1920">스토리 · 릴스 9:16 · 1080 × 1920</option></optgroup><optgroup label="세로 화면"><option value="720x1280">HD 세로 · 720 × 1280</option><option value="1200x1800">세로 포스터 2:3 · 1200 × 1800</option><option value="1080x2160">긴 세로 1:2 · 1080 × 2160</option></optgroup></select></label></div><span>라이브 캔버스 <span class="resolution" id="resolution-label"></span></span><div class="toolbar-actions"><label class="button-label" title="공유받은 설정 JSON 파일을 선택하면 이 화면에 적용됩니다">설정 JSON 불러오기<input id="load-project" type="file" accept=".json,application/json" aria-label="설정 JSON 파일 불러오기"></label><button id="snapshot">PNG 한 장</button><button id="pause" aria-pressed="false">Ⅱ 일시정지</button><button id="replay-zero">↺ 0초부터 재생</button></div></div>
+<p class="hint" id="format-note"></p><div class="canvas-tools" aria-label="캔버스 편집 도구"><div class="tool-modes" role="group" aria-label="마우스 모드"><button id="tool-move" aria-pressed="true">선택 · 이동</button><button id="tool-draw" aria-pressed="false">드래그로 생성</button></div><label class="quick-toggle" for="visible-canvas"><input id="visible-canvas" type="checkbox" role="switch" checked> 구 보이기</label><label class="quick-toggle theme-toggle" for="toggle-theme"><input id="toggle-theme" type="checkbox" role="switch"> 나이트 모드</label><label class="brush-label" for="brush-text" id="brush-controls" hidden>그릴 글자 <input id="brush-text" type="text" value="오ㄹ류페스티벌" spellcheck="false"></label><button id="clear-all" hidden>전체 지우기</button></div><p id="interaction-hint" class="interaction-hint">구를 클릭하고 드래그해서 옮기세요. 선택 후 방향키로도 이동할 수 있어요.</p><div class="stage-wrap"><div id="stage"><canvas id="canvas" tabindex="0" aria-label="구 선택 및 이동 캔버스. 방향키로 선택한 구 이동, Escape로 드래그 취소." aria-describedby="interaction-hint"></canvas><svg id="selection-overlay" aria-hidden="true"><circle id="selection-ring" cx="0" cy="0" r="0" visibility="hidden"/></svg><div id="empty" hidden>어떤 글자를 띄워볼까요?</div><div id="error" hidden>3D 화면을 시작할 수 없어요. 브라우저의 하드웨어 가속을 확인해주세요.</div><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span></div></div>
 <div class="live-caption"><span><i></i> <span id="status">자유롭게 떠다니는 중</span></span><span id="mode-label">SHARED SPACE · FLAT SPHERES</span></div>
 <details class="timeline" aria-label="키프레임과 내보내기"><summary>키프레임 · 내보내기</summary><div class="timeline-body">
-<div class="timeline-heading"><h2>시간을 디자인하기</h2><div class="toolbar-actions"><button id="save-project">설정 저장</button><label class="button-label">불러오기<input id="load-project" type="file" accept=".json,application/json"></label></div></div>
+<div class="timeline-heading"><h2>시간을 디자인하기</h2><div class="toolbar-actions"><button id="save-project">설정 저장</button></div></div>
 <div class="time-controls"><button id="timeline-play">▶ 타임라인 반복 재생</button><label for="seek">현재 <input id="time-out" class="range-value" type="number" min="0" max="6" step="0.01" value="0" aria-label="현재 시간 (초)"></label><input id="seek" type="range" min="0" max="6" step="0.01" value="0"><label for="duration">길이 <input id="duration" type="number" min="1" max="30" step="1" value="6"> 초</label></div>
 <p class="hint">끝나면 0초의 배치로 돌아가 반복해요. 녹화·PNG 프레임 저장은 설정한 길이만큼 저장해요.</p><div class="key-row"><button id="add-key">＋ 현재 설정을 키프레임에</button><div id="keyframes" aria-label="저장된 키프레임"></div></div>
 <p class="hint">시간을 옮기고 설정을 조절한 뒤 키프레임을 추가하세요. 바람·크기·회전·색상은 부드럽게 이어져요.</p>
@@ -458,7 +550,7 @@ function validateProject(p){
  }
  if(p.brushText!==undefined&&(typeof p.brushText!=='string'))throw Error('그릴 글자를 확인해주세요.');return p;
 }
-async function applyProject(input){const p=validateProject(JSON.parse(JSON.stringify(input)));if(p.config.font==='pretendard'||p.keyframes.some(k=>k.config.font==='pretendard'))await ensurePretendard();if(p.googleFont)await loadGoogleFont(p.googleFont.family);if(p.customFont)await installFont(p.customFont.data,p.customFont.name);else{customFont=null;for(const f of document.fonts)if(f.family==='BalloonCustom')document.fonts.delete(f);$('font').querySelector('option[value="custom"]')?.remove();$('font-note').textContent='기기에 설치된 폰트를 사용해요.';renderer?.clearTextures();}edited();state=p.config;initialPositions=p.initialPositions||null;selected=-1;$('brush-text').value=p.brushText||'오ㄹ류페스티벌';keys=p.keyframes;overrides=p.overrides;inkOverrides=p.inkOverrides||{};$('text').value=p.text;$('resolution').value=p.resolution;setResolution(p.resolution);$('duration').value=p.duration;$('seek').max=p.duration;$('fps').value=p.fps;cursor=0;paused=true;rebuildText();refreshGoogleGlyphs();syncUI();renderKeys();notice('설정을 불러왔어요. 타임라인을 재생해보세요.');}
+async function applyProject(input){const p=validateProject(JSON.parse(JSON.stringify(input)));if(p.config.font==='pretendard'||p.keyframes.some(k=>k.config.font==='pretendard'))await ensurePretendard();if(p.googleFont)await loadGoogleFont(p.googleFont.family);if(p.customFont)await installFont(p.customFont.data,p.customFont.name);else{customFont=null;for(const f of document.fonts)if(f.family==='BalloonCustom')document.fonts.delete(f);$('font').querySelector('option[value="custom"]')?.remove();$('font-note').textContent='기기에 설치된 폰트를 사용해요.';renderer?.clearTextures();}edited();state=p.config;initialPositions=p.initialPositions||null;selected=-1;$('brush-text').value=p.brushText||'오ㄹ류페스티벌';keys=p.keyframes;overrides=p.overrides;inkOverrides=p.inkOverrides||{};$('text').value=p.text;$('resolution').value=p.resolution;setResolution(p.resolution);$('duration').value=p.duration;$('seek').max=p.duration;$('fps').value=p.fps;cursor=0;paused=true;rebuildText();refreshGoogleGlyphs();syncUI();renderKeys();notice('설정을 적용했어요. ‘0초부터 재생’으로 시작하거나 ‘내 프리셋’에 저장하세요.');}
 $('load-project').onchange=async()=>{const file=$('load-project').files[0];if(!file||fontBusy||exporting)return;fontBusy=true;try{await applyProject(JSON.parse(await file.text()));}catch(e){notice('설정을 열지 못했어요. '+e.message,true);}finally{fontBusy=false;$('load-project').value='';}};
 const presetKey='balloon-studio-presets-v1';let presets=[];
 try{const saved=JSON.parse(localStorage.getItem(presetKey)||'[]');if(Array.isArray(saved))presets=saved.filter(p=>p&&typeof p.name==='string'&&p.project);}catch(e){}
@@ -633,5 +725,33 @@ for(const name of [...Object.keys(E.ranges),'seek']){
 
 const builtinFlightPreset={"name": "아래에서 위로 날아가기", "project": {"format": "balloon-studio", "version": 2, "text": "오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌", "config": {"float": 32, "speed": 28, "rotation": 30, "rotationShare": 60, "size": 52, "typeSize": 101, "weight": 500, "font": "pretendard", "visible": false, "openTop": false, "flowThrough": true, "collision": true, "bounce": 38, "softness": 35, "windTop": 0, "windBottom": 6, "windLeft": 0, "windRight": 0, "hold": false, "letterSpacing": 58, "lineSpacing": 57, "layout": "text", "color": "#d9ff96", "ink": "#211c19", "background": "#ffffff"}, "keyframes": [], "overrides": {}, "inkOverrides": {}, "resolution": "1080x1350", "duration": 30, "fps": 30, "customFont": null, "googleFont": null, "initialPositions": null, "brushText": "오ㄹ류페스티벌"}};
 $('builtin-flight-preset').onclick=()=>applySavedPreset(builtinFlightPreset);
+
+// Workspace preferences are independent of the artwork and its exported settings.
+let workspaceView={left:true,right:true,night:false};
+try{const saved=JSON.parse(localStorage.getItem('balloon-workspace-view-v1')||'null');if(saved)for(const key of Object.keys(workspaceView))if(typeof saved[key]==='boolean')workspaceView[key]=saved[key];}catch{}
+function syncWorkspaceView(){
+ $('motion-controls').hidden=!workspaceView.left;
+ $('controls').hidden=!workspaceView.right;
+ document.body.classList.toggle('left-panel-hidden',!workspaceView.left);
+ document.body.classList.toggle('right-panel-hidden',!workspaceView.right);
+ document.body.classList.toggle('night-mode',workspaceView.night);
+ const wide=!workspaceView.left&&!workspaceView.right;
+ document.body.classList.toggle('wide-canvas',wide);
+ for(const [side,label] of [['left','왼쪽'],['right','오른쪽']]){
+  const button=$('toggle-'+side+'-panel');
+  const description=label+' 패널 '+(workspaceView[side]?'접기':'열기');
+  button.textContent=side==='left'?(workspaceView.left?'‹':'›'):(workspaceView.right?'›':'‹');
+  button.setAttribute('aria-label',description);
+  button.setAttribute('title',description);
+  button.setAttribute('aria-expanded',String(workspaceView[side]));
+ }
+ $('toggle-theme').checked=workspaceView.night;
+ try{localStorage.setItem('balloon-workspace-view-v1',JSON.stringify(workspaceView));}catch{}
+ fitStage();
+}
+$('toggle-left-panel').onclick=()=>{workspaceView.left=!workspaceView.left;syncWorkspaceView();};
+$('toggle-right-panel').onclick=()=>{workspaceView.right=!workspaceView.right;syncWorkspaceView();};
+$('toggle-theme').onchange=()=>{workspaceView.night=$('toggle-theme').checked;syncWorkspaceView();};
+syncWorkspaceView();
 </script>
 </body></html>

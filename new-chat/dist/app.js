@@ -136,7 +136,7 @@ function validateProject(p){
  }
  if(p.brushText!==undefined&&(typeof p.brushText!=='string'))throw Error('그릴 글자를 확인해주세요.');return p;
 }
-async function applyProject(input){const p=validateProject(JSON.parse(JSON.stringify(input)));if(p.config.font==='pretendard'||p.keyframes.some(k=>k.config.font==='pretendard'))await ensurePretendard();if(p.googleFont)await loadGoogleFont(p.googleFont.family);if(p.customFont)await installFont(p.customFont.data,p.customFont.name);else{customFont=null;for(const f of document.fonts)if(f.family==='BalloonCustom')document.fonts.delete(f);$('font').querySelector('option[value="custom"]')?.remove();$('font-note').textContent='기기에 설치된 폰트를 사용해요.';renderer?.clearTextures();}edited();state=p.config;initialPositions=p.initialPositions||null;selected=-1;$('brush-text').value=p.brushText||'오ㄹ류페스티벌';keys=p.keyframes;overrides=p.overrides;inkOverrides=p.inkOverrides||{};$('text').value=p.text;$('resolution').value=p.resolution;setResolution(p.resolution);$('duration').value=p.duration;$('seek').max=p.duration;$('fps').value=p.fps;cursor=0;paused=true;rebuildText();refreshGoogleGlyphs();syncUI();renderKeys();notice('설정을 불러왔어요. 타임라인을 재생해보세요.');}
+async function applyProject(input){const p=validateProject(JSON.parse(JSON.stringify(input)));if(p.config.font==='pretendard'||p.keyframes.some(k=>k.config.font==='pretendard'))await ensurePretendard();if(p.googleFont)await loadGoogleFont(p.googleFont.family);if(p.customFont)await installFont(p.customFont.data,p.customFont.name);else{customFont=null;for(const f of document.fonts)if(f.family==='BalloonCustom')document.fonts.delete(f);$('font').querySelector('option[value="custom"]')?.remove();$('font-note').textContent='기기에 설치된 폰트를 사용해요.';renderer?.clearTextures();}edited();state=p.config;initialPositions=p.initialPositions||null;selected=-1;$('brush-text').value=p.brushText||'오ㄹ류페스티벌';keys=p.keyframes;overrides=p.overrides;inkOverrides=p.inkOverrides||{};$('text').value=p.text;$('resolution').value=p.resolution;setResolution(p.resolution);$('duration').value=p.duration;$('seek').max=p.duration;$('fps').value=p.fps;cursor=0;paused=true;rebuildText();refreshGoogleGlyphs();syncUI();renderKeys();notice('설정을 적용했어요. ‘0초부터 재생’으로 시작하거나 ‘내 프리셋’에 저장하세요.');}
 $('load-project').onchange=async()=>{const file=$('load-project').files[0];if(!file||fontBusy||exporting)return;fontBusy=true;try{await applyProject(JSON.parse(await file.text()));}catch(e){notice('설정을 열지 못했어요. '+e.message,true);}finally{fontBusy=false;$('load-project').value='';}};
 const presetKey='balloon-studio-presets-v1';let presets=[];
 try{const saved=JSON.parse(localStorage.getItem(presetKey)||'[]');if(Array.isArray(saved))presets=saved.filter(p=>p&&typeof p.name==='string'&&p.project);}catch(e){}
@@ -311,3 +311,31 @@ for(const name of [...Object.keys(E.ranges),'seek']){
 
 const builtinFlightPreset={"name": "아래에서 위로 날아가기", "project": {"format": "balloon-studio", "version": 2, "text": "오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌\n오ㄹ류페스티벌", "config": {"float": 32, "speed": 28, "rotation": 30, "rotationShare": 60, "size": 52, "typeSize": 101, "weight": 500, "font": "pretendard", "visible": false, "openTop": false, "flowThrough": true, "collision": true, "bounce": 38, "softness": 35, "windTop": 0, "windBottom": 6, "windLeft": 0, "windRight": 0, "hold": false, "letterSpacing": 58, "lineSpacing": 57, "layout": "text", "color": "#d9ff96", "ink": "#211c19", "background": "#ffffff"}, "keyframes": [], "overrides": {}, "inkOverrides": {}, "resolution": "1080x1350", "duration": 30, "fps": 30, "customFont": null, "googleFont": null, "initialPositions": null, "brushText": "오ㄹ류페스티벌"}};
 $('builtin-flight-preset').onclick=()=>applySavedPreset(builtinFlightPreset);
+
+// Workspace preferences are independent of the artwork and its exported settings.
+let workspaceView={left:true,right:true,night:false};
+try{const saved=JSON.parse(localStorage.getItem('balloon-workspace-view-v1')||'null');if(saved)for(const key of Object.keys(workspaceView))if(typeof saved[key]==='boolean')workspaceView[key]=saved[key];}catch{}
+function syncWorkspaceView(){
+ $('motion-controls').hidden=!workspaceView.left;
+ $('controls').hidden=!workspaceView.right;
+ document.body.classList.toggle('left-panel-hidden',!workspaceView.left);
+ document.body.classList.toggle('right-panel-hidden',!workspaceView.right);
+ document.body.classList.toggle('night-mode',workspaceView.night);
+ const wide=!workspaceView.left&&!workspaceView.right;
+ document.body.classList.toggle('wide-canvas',wide);
+ for(const [side,label] of [['left','왼쪽'],['right','오른쪽']]){
+  const button=$('toggle-'+side+'-panel');
+  const description=label+' 패널 '+(workspaceView[side]?'접기':'열기');
+  button.textContent=side==='left'?(workspaceView.left?'‹':'›'):(workspaceView.right?'›':'‹');
+  button.setAttribute('aria-label',description);
+  button.setAttribute('title',description);
+  button.setAttribute('aria-expanded',String(workspaceView[side]));
+ }
+ $('toggle-theme').checked=workspaceView.night;
+ try{localStorage.setItem('balloon-workspace-view-v1',JSON.stringify(workspaceView));}catch{}
+ fitStage();
+}
+$('toggle-left-panel').onclick=()=>{workspaceView.left=!workspaceView.left;syncWorkspaceView();};
+$('toggle-right-panel').onclick=()=>{workspaceView.right=!workspaceView.right;syncWorkspaceView();};
+$('toggle-theme').onchange=()=>{workspaceView.night=$('toggle-theme').checked;syncWorkspaceView();};
+syncWorkspaceView();
