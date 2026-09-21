@@ -16,8 +16,9 @@ function duration(){return Number($('duration').value);}
 function textValue(){return $('text').value;}
 function setRangeFill(el){el.style.setProperty('--fill',((Number(el.value)-Number(el.min))/(Number(el.max)-Number(el.min))*100)+'%');}
 function syncUI(){
+ if(gradientEditors)for(const editor of gradientEditors)editor.refresh();
  for(const name of Object.keys(E.ranges)){const el=$(name);el.value=state[name];if(document.activeElement!==$(name+'-out'))$(name+'-out').value=Math.round(state[name]);setRangeFill(el);}
- for(const name of ['visible','collision','hold','openTop','flowThrough'])$(name).checked=state[name];
+ for(const name of ['visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).checked=state[name];
  for(const name of ['font','layout',...E.colors])$(name).value=state[name];
  $('pause').textContent=paused?'▶ 재생':'Ⅱ 일시정지';$('pause').setAttribute('aria-pressed',String(paused));
  $('timeline-play').textContent=timelinePlaying?'Ⅱ 반복 재생 정지':'▶ 타임라인 반복 재생';
@@ -43,7 +44,7 @@ function configAt(t,base=state,list=keys){return E.interpolate(list,t,base);}
 function stepWorld(targetWorld,target,base,list=keys){while(targetWorld.time+E.STEP<=target+1e-7){const t=targetWorld.time+E.STEP;targetWorld.step(E.STEP,configAt(t,base,list));}}
 function invalidateTimeline(reason){if(keys.length){keys=[];renderKeys();notice(reason+' 기존 키프레임을 지웠어요.');}cursor=0;timelinePlaying=false;}
 for(const name of Object.keys(E.ranges))$(name).oninput=()=>{state[name]=Number($(name).value);edited();};
-for(const name of ['visible','collision','hold','openTop','flowThrough'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
+for(const name of ['visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
 for(const name of ['font',...E.colors])$(name).oninput=()=>{state[name]=$(name).value;edited();updateIndividual();};
 $('flowThrough').onchange=()=>{if(gesture||exporting)return;state.flowThrough=$('flowThrough').checked;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice(state.flowThrough?'아래 화면 밖에서 출발합니다.':'닫힌 공간의 배치로 돌아왔어요.');};
 $('restart-flight').onclick=()=>{if(gesture||exporting)return;state.flowThrough=true;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice('아래에서 다시 출발해요.');};
@@ -216,12 +217,30 @@ canvas.addEventListener('keydown',event=>{
 
 function makeRenderer(){
  if(!gl)throw Error('WebGL이 지원되지 않습니다.');
- const vert=`attribute vec3 position;attribute vec2 uv;uniform vec3 center;uniform vec3 angles;uniform vec2 viewport;uniform float radius;uniform float squash;uniform vec3 squashAxis;varying vec2 texUV;varying float facing;
- void main(){vec3 p=position;float c=cos(angles.x),s=sin(angles.x);p=vec3(p.x,c*p.y-s*p.z,s*p.y+c*p.z);c=cos(angles.y);s=sin(angles.y);p=vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);c=cos(angles.z);s=sin(angles.z);p=vec3(c*p.x-s*p.y,s*p.x+c*p.y,p.z);float axial=1.0-squash;float transverse=inversesqrt(axial);vec3 normal=p/transverse+(1.0/axial-1.0/transverse)*dot(p,squashAxis)*squashAxis;facing=normal.z;p=p*transverse+(axial-transverse)*dot(p,squashAxis)*squashAxis;vec3 world=p*radius+center;gl_Position=vec4(world.x/(viewport.x*.5),world.y/(viewport.y*.5),-world.z/1800.0,1.0);texUV=uv;}`;
- const frag=`precision mediump float;uniform sampler2D lettering;uniform vec3 color;uniform vec3 inkColor;uniform vec3 background;uniform float visible;uniform float letteringPass;varying vec2 texUV;varying float facing;void main(){if(letteringPass<.5){if(visible<.5||facing<0.0)discard;gl_FragColor=vec4(color,1.0);}else{if(visible>.5&&facing<0.0)discard;float alpha=texture2D(lettering,texUV).a;if(alpha<.02)discard;gl_FragColor=vec4(inkColor,alpha);}}`;
+ const vert=`attribute vec3 position;attribute vec2 uv;uniform vec3 center;uniform vec3 angles;uniform vec2 viewport;uniform float radius;uniform float squash;uniform vec3 squashAxis;uniform mediump float letteringPass;varying vec2 texUV;varying float facing;varying float bodyHeight;varying vec2 gradientPoint;
+ void main(){if(letteringPass>2.5){texUV=uv;facing=1.0;bodyHeight=uv.y;gradientPoint=uv;gl_Position=vec4(uv*2.0-1.0,0.0,1.0);return;}vec3 p=position;float c=cos(angles.x),s=sin(angles.x);p=vec3(p.x,c*p.y-s*p.z,s*p.y+c*p.z);c=cos(angles.y);s=sin(angles.y);p=vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);c=cos(angles.z);s=sin(angles.z);p=vec3(c*p.x-s*p.y,s*p.x+c*p.y,p.z);float axial=1.0-squash;float transverse=inversesqrt(axial);vec3 normal=p/transverse+(1.0/axial-1.0/transverse)*dot(p,squashAxis)*squashAxis;facing=normal.z;p=p*transverse+(axial-transverse)*dot(p,squashAxis)*squashAxis;vec3 world=p*radius+center;gl_Position=vec4(world.x/(viewport.x*.5),world.y/(viewport.y*.5),-world.z/1800.0,1.0);texUV=uv;bodyHeight=clamp(p.y*.5+.5,0.0,1.0);gradientPoint=p.xy*.5+.5;}`;
+ const frag=`precision mediump float;
+uniform vec4 sphereStops[16];uniform vec4 backgroundStops[16];
+uniform int sphereStopCount;uniform int backgroundStopCount;
+uniform float sphereMode;uniform float backgroundMode;uniform float sphereAngle;uniform float backgroundAngle;
+
+float gradientT(vec2 p,float mode,float angle){
+ if(mode>.5)return clamp(length(p-.5)*2.0,0.0,1.0);
+ vec2 d=vec2(sin(angle),-cos(angle));
+ return clamp(.5+dot(p-.5,d)/max(.001,abs(d.x)+abs(d.y)),0.0,1.0);
+}
+vec3 sphereRamp(float t){
+ vec4 a=sphereStops[0];
+ for(int i=1;i<16;i++){if(i>=sphereStopCount)break;vec4 b=sphereStops[i];if(t<=b.a)return mix(a.rgb,b.rgb,clamp((t-a.a)/max(.00001,b.a-a.a),0.0,1.0));a=b;}return a.rgb;
+}
+vec3 backgroundRamp(float t){
+ vec4 a=backgroundStops[0];
+ for(int i=1;i<16;i++){if(i>=backgroundStopCount)break;vec4 b=backgroundStops[i];if(t<=b.a)return mix(a.rgb,b.rgb,clamp((t-a.a)/max(.00001,b.a-a.a),0.0,1.0));a=b;}return a.rgb;
+}
+uniform sampler2D lettering;uniform vec3 color;uniform vec3 inkColor;uniform vec3 background;uniform vec3 backgroundEnd;uniform vec3 sphereEnd;uniform float useBackgroundGradient;uniform float useSphereGradient;uniform float visible;uniform mediump float letteringPass;varying vec2 texUV;varying float facing;varying float bodyHeight;varying vec2 gradientPoint;void main(){if(letteringPass>2.5){gl_FragColor=vec4(mix(background,backgroundRamp(gradientT(texUV,backgroundMode,backgroundAngle)),useBackgroundGradient),1.0);return;}if(letteringPass<.5){if(visible<.5||facing<0.0)discard;gl_FragColor=vec4(mix(color,sphereRamp(gradientT(gradientPoint,sphereMode,sphereAngle)),useSphereGradient),1.0);}else{if(visible>.5&&facing<0.0)discard;float alpha=texture2D(lettering,texUV).a;if(alpha<.02)discard;gl_FragColor=vec4(inkColor,alpha);}}`;
  function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
  const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vert));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,frag));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('3D 프로그램을 시작하지 못했습니다.');gl.useProgram(program);
- const uniforms={};for(const n of ['center','angles','viewport','radius','squash','squashAxis','lettering','color','inkColor','background','visible','letteringPass'])uniforms[n]=gl.getUniformLocation(program,n);
+ const uniforms={};for(const n of ['center','angles','viewport','radius','squash','squashAxis','lettering','color','inkColor','background','visible','letteringPass','backgroundEnd','sphereEnd','useBackgroundGradient','useSphereGradient','sphereStops[0]','backgroundStops[0]','sphereStopCount','backgroundStopCount','sphereMode','backgroundMode','sphereAngle','backgroundAngle'])uniforms[n]=gl.getUniformLocation(program,n);
  const points=[],uvs=[],indices=[],nx=64,ny=32;
  for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const u=i/nx,v=j/ny,lon=(u-.5)*Math.PI*2,lat=(.5-v)*Math.PI;points.push(Math.sin(lon)*Math.cos(lat),Math.sin(lat),Math.cos(lon)*Math.cos(lat));uvs.push(u,v);}
  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i;indices.push(a,a+nx+1,a+1,a+1,a+nx+1,a+nx+2);}
@@ -235,6 +254,21 @@ function makeRenderer(){
  function draw(sim,config){
   const nextSignature=[Math.round(config.typeSize*4/3),Math.round(config.weight),config.font].join('|');if(nextSignature!==signature){clearTextures();signature=nextSignature;}
   gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...bg,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,sim.particles.length);
+  for(const kind of ['sphere','background']){
+   const stops=gradientStops(config,kind),data=new Float32Array(64);
+   stops.forEach((stop,i)=>{data.set(E.rgb(stop.color),i*4);data[i*4+3]=stop.position;});
+   gl.uniform4fv(uniforms[kind+'Stops[0]'],data);gl.uniform1i(uniforms[kind+'StopCount'],stops.length);
+   gl.uniform1f(uniforms[kind+'Mode'],config[kind+'GradientMode']==='radial'?1:0);
+   gl.uniform1f(uniforms[kind+'Angle'],(config[kind+'GradientAngle']||0)*Math.PI/180);
+  }
+  gl.uniform3f(uniforms.backgroundEnd,...E.rgb(config.backgroundColorEnd));
+  gl.uniform3f(uniforms.sphereEnd,...E.rgb(config.sphereColorEnd));
+  gl.uniform1f(uniforms.useBackgroundGradient,config.backgroundGradient?1:0);
+  gl.uniform1f(uniforms.useSphereGradient,config.sphereGradient?1:0);
+  gl.bindTexture(gl.TEXTURE_2D,texture(' ',config));
+  gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.depthMask(false);
+  gl.uniform1f(uniforms.letteringPass,3);gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
+  gl.depthMask(true);gl.enable(gl.DEPTH_TEST);
   for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){const turn=s.turn||0,profile=E.rotationProfile(s.index);gl.uniform3f(uniforms.center,s.x,s.y,s.z);gl.uniform1f(uniforms.radius,r);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.angles,Math.sin(turn)*profile.tilt,turn-.42*Math.sin(2*turn),Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.index]||config.color));gl.uniform3f(uniforms.inkColor,...E.rgb(inkOverrides[s.index]||config.ink));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
    // A visible body hides rear lettering; a hidden body reveals its mirrored back side.
    gl.uniform1f(uniforms.letteringPass,0);
@@ -339,3 +373,44 @@ $('toggle-left-panel').onclick=()=>{workspaceView.left=!workspaceView.left;syncW
 $('toggle-right-panel').onclick=()=>{workspaceView.right=!workspaceView.right;syncWorkspaceView();};
 $('toggle-theme').onchange=()=>{workspaceView.night=$('toggle-theme').checked;syncWorkspaceView();};
 syncWorkspaceView();
+
+function gradientStops(config,kind){
+ const key=kind+'Stops';
+ return config[key]||[{position:0,color:kind==='sphere'?config.color:config.background},{position:1,color:kind==='sphere'?config.sphereColorEnd:config.backgroundColorEnd}];
+}
+
+var gradientEditors=[];
+for(const kind of ['sphere','background']){
+ const bar=$(kind+'-gradient-bar'),picker=$(kind+'-stop-color'),position=$(kind+'-stop-position'),mode=$(kind+'-gradient-mode'),angle=$(kind+'-gradient-angle');
+ const editor={kind,selected:0,refresh};gradientEditors.push(editor);
+ function stops(){return gradientStops(state,kind).map(s=>({...s}));}
+ function commit(list){state[kind+'Stops']=list;state[kind+'Gradient']=true;edited();}
+ function refresh(){
+  const list=stops();editor.selected=Math.min(editor.selected,list.length-1);
+  bar.style.background='linear-gradient(to right,'+list.map(s=>s.color+' '+s.position*100+'%').join(',')+')';
+  bar.replaceChildren();
+  list.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.className='gradient-stop';b.style.left=s.position*100+'%';b.style.background=s.color;b.setAttribute('aria-label','색상 포인트 '+(i+1));b.setAttribute('aria-pressed',String(editor.selected===i));b.dataset.stop=String(i);
+   b.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();editor.selected=i;position.value=Math.round(Math.max(0,Math.min(1,s.position+(e.key==='ArrowRight'?.01:-.01)))*100);position.onchange();}};bar.append(b);
+  });
+  if(document.activeElement!==picker)picker.value=list[editor.selected].color;
+  if(document.activeElement!==position)position.value=Math.round(list[editor.selected].position*100);
+  mode.value=state[kind+'GradientMode'];if(document.activeElement!==angle)angle.value=state[kind+'GradientAngle'];
+  $(kind+'-stop-remove').disabled=list.length<=2;$(kind+'-stop-add').disabled=list.length>=16;
+ }
+ function add(at){const list=stops();if(list.length>=16)return;
+  list.push({position:at,color:list[editor.selected].color});const point=list[list.length-1];list.sort((a,b)=>a.position-b.position);editor.selected=list.indexOf(point);commit(list);
+ }
+ let dragging=false;
+ const point=e=>Math.max(0,Math.min(1,(e.clientX-bar.getBoundingClientRect().left)/bar.getBoundingClientRect().width));
+ bar.onpointerdown=e=>{if(exporting)return;e.preventDefault();const stop=e.target.closest('[data-stop]');if(stop)editor.selected=Number(stop.dataset.stop);else add(point(e));dragging=true;bar.setPointerCapture(e.pointerId);refresh();};
+ bar.onpointermove=e=>{if(!dragging)return;const list=stops(),item=list[editor.selected];item.position=point(e);list.sort((a,b)=>a.position-b.position);editor.selected=list.indexOf(item);commit(list);};
+ bar.onpointerup=bar.onpointercancel=()=>{dragging=false;};
+ picker.oninput=picker.onchange=()=>{const list=stops();list[editor.selected].color=picker.value;commit(list);};
+ position.onchange=()=>{const val=Number(position.value);if(!Number.isFinite(val))return refresh();const list=stops(),item=list[editor.selected];item.position=Math.max(0,Math.min(100,val))/100;list.sort((a,b)=>a.position-b.position);editor.selected=list.indexOf(item);commit(list);};
+ $(kind+'-stop-add').onclick=()=>add(.5);
+ $(kind+'-stop-remove').onclick=()=>{const list=stops();if(list.length<=2)return;list.splice(editor.selected,1);editor.selected=Math.max(0,editor.selected-1);commit(list);};
+ mode.onchange=()=>{state[kind+'GradientMode']=mode.value;state[kind+'Gradient']=true;edited();};
+ angle.onchange=()=>{const v=Number(angle.value);if(Number.isFinite(v)){state[kind+'GradientAngle']=Math.max(0,Math.min(360,v));edited();}};
+ $(kind+'-gradient-reset').onclick=()=>{state[kind+'Stops']=null;edited();};
+ refresh();
+}

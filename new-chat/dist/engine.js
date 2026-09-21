@@ -2,9 +2,9 @@
 (function(root){
 'use strict';
 const STEP=1/120;
-const defaults={float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
+const defaults={sphereStops:null,backgroundStops:null,sphereGradientMode:"linear",backgroundGradientMode:"linear",sphereGradientAngle:0,backgroundGradientAngle:0,sphereGradient:false,backgroundGradient:false,sphereColorEnd:"#3d9fff",backgroundColorEnd:"#792cff",float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
 const ranges={letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[1,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
-const colors=['color','ink','background'];
+const colors=['color','ink','background','sphereColorEnd','backgroundColorEnd'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function validateConfig(input){
  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('설정 형식을 확인해주세요.');
@@ -12,9 +12,13 @@ function validateConfig(input){
  for(const [key,value]of Object.entries(input)){
   if(key==='accent')continue; // Older saved projects remain readable.
   if(!Object.prototype.hasOwnProperty.call(defaults,key))throw Error('알 수 없는 설정입니다: '+key);
-  if(ranges[key]){const [a,b]=ranges[key];if(typeof value!=='number'||!Number.isFinite(value)||value<a||value>b)throw Error('설정 범위를 확인해주세요: '+key);}
+  if(key==='sphereStops'||key==='backgroundStops'){
+   if(value!==null&&(!Array.isArray(value)||value.length<2||value.length>16||value.some((s,i)=>!s||typeof s.position!=='number'||!Number.isFinite(s.position)||s.position<0||s.position>1||typeof s.color!=='string'||!/^#[0-9a-f]{6}$/i.test(s.color)||(i>0&&s.position<value[i-1].position))))throw Error('그라디언트 포인트를 확인해주세요.');
+  }else if(key.endsWith('GradientMode')){if(!['linear','radial'].includes(value))throw Error('그라디언트 종류를 확인해주세요.');
+  }else if(key.endsWith('GradientAngle')){if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>360)throw Error('그라디언트 각도를 확인해주세요.');
+  }else if(ranges[key]){const [a,b]=ranges[key];if(typeof value!=='number'||!Number.isFinite(value)||value<a||value>b)throw Error('설정 범위를 확인해주세요: '+key);}
   else if(colors.includes(key)){if(typeof value!=='string'||!/^#[0-9a-f]{6}$/i.test(value))throw Error('색상 형식을 확인해주세요.');}
-  else if(['visible','collision','hold','openTop','flowThrough'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
+  else if(['visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
   else if(key==='layout'&&!['text','row','column','grid','circle','diagonal','zigzag','rings'].includes(value))throw Error('정렬 방식을 확인해주세요.');
   else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google','pretendard'].includes(value))throw Error('폰트를 확인해주세요.');
   out[key]=value;
@@ -38,7 +42,7 @@ function interpolate(keys,t,fallback){
  const out={...a.config};
  for(const key of Object.keys(ranges))out[key]=a.config[key]+(b.config[key]-a.config[key])*f;
  for(const key of colors)out[key]=mixColor(a.config[key],b.config[key],f);
- if(t>=b.time-1e-8)for(const key of ['font','visible','collision','hold','openTop','flowThrough','layout'])out[key]=b.config[key];
+ if(t>=b.time-1e-8)for(const key of ['font','visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough','layout'])out[key]=b.config[key];
  return out;
 }
 function radius(config,w,h,n){
