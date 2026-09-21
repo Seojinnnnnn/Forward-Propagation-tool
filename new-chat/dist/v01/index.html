@@ -148,7 +148,7 @@ body .gradient-stop[aria-pressed="true"]{outline:2px solid #888;outline-offset:3
 <label class="range-label" for="weight">글자 굵기 <input id="weight-out" class="range-value" type="number" min="100" max="900" step="1" value="500" aria-label="글자 굵기 수치"></label><input id="weight" type="range" min="100" max="900" step="1" value="500"></section>
 
 <details open><summary>형태 · 정렬 · 색상</summary><div class="detail-body">
-<label class="range-label" for="size">구 크기 <input id="size-out" class="range-value" type="number" min="20" max="600" step="1" value="20" aria-label="구 크기 수치"></label><input id="size" type="range" min="20" max="600" value="20">
+<label class="range-label" for="size">구 크기 <input id="size-out" class="range-value" type="number" min="20" max="600" step="1" value="20" aria-label="구 크기 수치"></label><input id="size" type="range" min="20" max="600" value="20"><label class="toggle-row" for="lockTypeSize"><span>글자 크기 고정<small>켠 시점의 글자 크기를 기준으로 구 크기만 조절해요.</small></span><input id="lockTypeSize" type="checkbox" role="switch"></label>
 <label class="toggle-row" for="visible"><span>구 보이기<small>끄면 구만 투명해지고 앞뒤 글자는 모두 남아요.</small></span><input id="visible" type="checkbox" role="switch" checked></label>
 <label class="range-label" for="layout">구 정렬</label><div class="inline"><select id="layout"><option value="text">글자 순서</option><option value="row">가로 정렬</option><option value="column">세로 정렬</option><option value="grid">격자 정렬</option><option value="circle">원형 정렬</option><option value="diagonal">대각선 ↘</option><option value="zigzag">지그재그</option><option value="rings">동심원</option></select><button id="arrange">정렬하기</button></div>
 <label class="range-label" for="letterSpacing">자간 · 가로 간격 <input id="letterSpacing-out" class="range-value" type="number" min="0" max="300" step="1" value="0" aria-label="자간 · 가로 간격 수치"></label><input id="letterSpacing" type="range" min="0" max="300" value="0"><label class="range-label" for="lineSpacing">행간 · 세로 간격 <input id="lineSpacing-out" class="range-value" type="number" min="0" max="300" step="1" value="0" aria-label="행간 · 세로 간격 수치"></label><input id="lineSpacing" type="range" min="0" max="300" value="0"><p class="hint">기본 간격에 여유를 더해요. 화면이 꽉 차면 간격이 제한될 수 있어요.</p><label class="toggle-row" for="hold"><span>정렬 유지<small>바람을 받아도 제자리로 돌아와요.</small></span><input id="hold" type="checkbox" role="switch"></label>
@@ -173,7 +173,7 @@ body .gradient-stop[aria-pressed="true"]{outline:2px solid #888;outline-offset:3
 (function(root){
 'use strict';
 const STEP=1/120;
-const defaults={sphereStops:null,backgroundStops:null,sphereGradientMode:"linear",backgroundGradientMode:"linear",sphereGradientAngle:0,backgroundGradientAngle:0,sphereGradient:false,backgroundGradient:false,sphereColorEnd:"#3d9fff",backgroundColorEnd:"#792cff",float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
+const defaults={lockTypeSize:false,typeSizeReferenceRadius:10.4,sphereStops:null,backgroundStops:null,sphereGradientMode:"linear",backgroundGradientMode:"linear",sphereGradientAngle:0,backgroundGradientAngle:0,sphereGradient:false,backgroundGradient:false,sphereColorEnd:"#3d9fff",backgroundColorEnd:"#792cff",float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
 const ranges={letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[1,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
 const colors=['color','ink','background','sphereColorEnd','backgroundColorEnd'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -183,13 +183,14 @@ function validateConfig(input){
  for(const [key,value]of Object.entries(input)){
   if(key==='accent')continue; // Older saved projects remain readable.
   if(!Object.prototype.hasOwnProperty.call(defaults,key))throw Error('알 수 없는 설정입니다: '+key);
-  if(key==='sphereStops'||key==='backgroundStops'){
+  if(key==='typeSizeReferenceRadius'){if(typeof value!=='number'||!Number.isFinite(value)||value<=0||value>10000)throw Error('글자 크기 기준을 확인해주세요.');
+  }else if(key==='sphereStops'||key==='backgroundStops'){
    if(value!==null&&(!Array.isArray(value)||value.length<2||value.length>16||value.some((s,i)=>!s||typeof s.position!=='number'||!Number.isFinite(s.position)||s.position<0||s.position>1||typeof s.color!=='string'||!/^#[0-9a-f]{6}$/i.test(s.color)||(i>0&&s.position<value[i-1].position))))throw Error('그라디언트 포인트를 확인해주세요.');
   }else if(key.endsWith('GradientMode')){if(!['linear','radial'].includes(value))throw Error('그라디언트 종류를 확인해주세요.');
   }else if(key.endsWith('GradientAngle')){if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>360)throw Error('그라디언트 각도를 확인해주세요.');
   }else if(ranges[key]){const [a,b]=ranges[key];if(typeof value!=='number'||!Number.isFinite(value)||value<a||value>b)throw Error('설정 범위를 확인해주세요: '+key);}
   else if(colors.includes(key)){if(typeof value!=='string'||!/^#[0-9a-f]{6}$/i.test(value))throw Error('색상 형식을 확인해주세요.');}
-  else if(['visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
+  else if(['visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
   else if(key==='layout'&&!['text','row','column','grid','circle','diagonal','zigzag','rings'].includes(value))throw Error('정렬 방식을 확인해주세요.');
   else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google','pretendard'].includes(value))throw Error('폰트를 확인해주세요.');
   out[key]=value;
@@ -213,7 +214,7 @@ function interpolate(keys,t,fallback){
  const out={...a.config};
  for(const key of Object.keys(ranges))out[key]=a.config[key]+(b.config[key]-a.config[key])*f;
  for(const key of colors)out[key]=mixColor(a.config[key],b.config[key],f);
- if(t>=b.time-1e-8)for(const key of ['font','visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough','layout'])out[key]=b.config[key];
+ if(t>=b.time-1e-8)for(const key of ['font','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','layout'])out[key]=b.config[key];
  return out;
 }
 function radius(config,w,h,n){
@@ -440,7 +441,7 @@ function setRangeFill(el){el.style.setProperty('--fill',((Number(el.value)-Numbe
 function syncUI(){
  if(gradientEditors)for(const editor of gradientEditors)editor.refresh();
  for(const name of Object.keys(E.ranges)){const el=$(name);el.value=state[name];if(document.activeElement!==$(name+'-out'))$(name+'-out').value=Math.round(state[name]);setRangeFill(el);}
- for(const name of ['visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).checked=state[name];
+ for(const name of ['visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).checked=state[name];
  for(const name of ['font','layout',...E.colors])$(name).value=state[name];
  $('pause').textContent=paused?'▶ 재생':'Ⅱ 일시정지';$('pause').setAttribute('aria-pressed',String(paused));
  $('timeline-play').textContent=timelinePlaying?'Ⅱ 반복 재생 정지':'▶ 타임라인 반복 재생';
@@ -466,7 +467,7 @@ function configAt(t,base=state,list=keys){return E.interpolate(list,t,base);}
 function stepWorld(targetWorld,target,base,list=keys){while(targetWorld.time+E.STEP<=target+1e-7){const t=targetWorld.time+E.STEP;targetWorld.step(E.STEP,configAt(t,base,list));}}
 function invalidateTimeline(reason){if(keys.length){keys=[];renderKeys();notice(reason+' 기존 키프레임을 지웠어요.');}cursor=0;timelinePlaying=false;}
 for(const name of Object.keys(E.ranges))$(name).oninput=()=>{state[name]=Number($(name).value);edited();};
-for(const name of ['visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
+for(const name of ['visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
 for(const name of ['font',...E.colors])$(name).oninput=()=>{state[name]=$(name).value;edited();updateIndividual();};
 $('flowThrough').onchange=()=>{if(gesture||exporting)return;state.flowThrough=$('flowThrough').checked;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice(state.flowThrough?'아래 화면 밖에서 출발합니다.':'닫힌 공간의 배치로 돌아왔어요.');};
 $('restart-flight').onclick=()=>{if(gesture||exporting)return;state.flowThrough=true;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice('아래에서 다시 출발해요.');};
@@ -659,10 +660,10 @@ vec3 backgroundRamp(float t){
  vec4 a=backgroundStops[0];
  for(int i=1;i<16;i++){if(i>=backgroundStopCount)break;vec4 b=backgroundStops[i];if(t<=b.a)return mix(a.rgb,b.rgb,clamp((t-a.a)/max(.00001,b.a-a.a),0.0,1.0));a=b;}return a.rgb;
 }
-uniform sampler2D lettering;uniform vec3 color;uniform vec3 inkColor;uniform vec3 background;uniform vec3 backgroundEnd;uniform vec3 sphereEnd;uniform float useBackgroundGradient;uniform float useSphereGradient;uniform float visible;uniform mediump float letteringPass;varying vec2 texUV;varying float facing;varying float bodyHeight;varying vec2 gradientPoint;void main(){if(letteringPass>2.5){gl_FragColor=vec4(mix(background,backgroundRamp(gradientT(texUV,backgroundMode,backgroundAngle)),useBackgroundGradient),1.0);return;}if(letteringPass<.5){if(visible<.5||facing<0.0)discard;gl_FragColor=vec4(mix(color,sphereRamp(gradientT(gradientPoint,sphereMode,sphereAngle)),useSphereGradient),1.0);}else{if(visible>.5&&facing<0.0)discard;float alpha=texture2D(lettering,texUV).a;if(alpha<.02)discard;gl_FragColor=vec4(inkColor,alpha);}}`;
+uniform sampler2D lettering;uniform float letteringScale;uniform vec3 color;uniform vec3 inkColor;uniform vec3 background;uniform vec3 backgroundEnd;uniform vec3 sphereEnd;uniform float useBackgroundGradient;uniform float useSphereGradient;uniform float visible;uniform mediump float letteringPass;varying vec2 texUV;varying float facing;varying float bodyHeight;varying vec2 gradientPoint;void main(){if(letteringPass>2.5){gl_FragColor=vec4(mix(background,backgroundRamp(gradientT(texUV,backgroundMode,backgroundAngle)),useBackgroundGradient),1.0);return;}if(letteringPass<.5){if(visible<.5||facing<0.0)discard;gl_FragColor=vec4(mix(color,sphereRamp(gradientT(gradientPoint,sphereMode,sphereAngle)),useSphereGradient),1.0);}else{if(visible>.5&&facing<0.0)discard;vec2 letterUV=(texUV-.5)*letteringScale+.5;if(any(lessThan(letterUV,vec2(0.0)))||any(greaterThan(letterUV,vec2(1.0))))discard;float alpha=texture2D(lettering,letterUV).a;if(alpha<.02)discard;gl_FragColor=vec4(inkColor,alpha);}}`;
  function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
  const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vert));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,frag));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('3D 프로그램을 시작하지 못했습니다.');gl.useProgram(program);
- const uniforms={};for(const n of ['center','angles','viewport','radius','squash','squashAxis','lettering','color','inkColor','background','visible','letteringPass','backgroundEnd','sphereEnd','useBackgroundGradient','useSphereGradient','sphereStops[0]','backgroundStops[0]','sphereStopCount','backgroundStopCount','sphereMode','backgroundMode','sphereAngle','backgroundAngle'])uniforms[n]=gl.getUniformLocation(program,n);
+ const uniforms={};for(const n of ['center','angles','viewport','radius','squash','squashAxis','lettering','letteringScale','color','inkColor','background','visible','letteringPass','backgroundEnd','sphereEnd','useBackgroundGradient','useSphereGradient','sphereStops[0]','backgroundStops[0]','sphereStopCount','backgroundStopCount','sphereMode','backgroundMode','sphereAngle','backgroundAngle'])uniforms[n]=gl.getUniformLocation(program,n);
  const points=[],uvs=[],indices=[],nx=64,ny=32;
  for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const u=i/nx,v=j/ny,lon=(u-.5)*Math.PI*2,lat=(.5-v)*Math.PI;points.push(Math.sin(lon)*Math.cos(lat),Math.sin(lat),Math.cos(lon)*Math.cos(lat));uvs.push(u,v);}
  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i;indices.push(a,a+nx+1,a+1,a+1,a+nx+1,a+nx+2);}
@@ -675,7 +676,7 @@ uniform sampler2D lettering;uniform vec3 color;uniform vec3 inkColor;uniform vec
  if(metrics&&Number.isFinite(metrics.actualBoundingBoxLeft)&&Number.isFinite(metrics.actualBoundingBoxAscent)){ctx.fillText(char,512+(metrics.actualBoundingBoxLeft-metrics.actualBoundingBoxRight)/2,256+(metrics.actualBoundingBoxAscent-metrics.actualBoundingBoxDescent)/2);}else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(char,512,256,500);} const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);textures.set(char,t);return t;}
  function draw(sim,config){
   const nextSignature=[Math.round(config.typeSize*4/3),Math.round(config.weight),config.font].join('|');if(nextSignature!==signature){clearTextures();signature=nextSignature;}
-  gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...bg,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,sim.particles.length);
+  gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...bg,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,sim.particles.length);gl.uniform1f(uniforms.letteringScale,config.lockTypeSize?r/config.typeSizeReferenceRadius:1);
   for(const kind of ['sphere','background']){
    const stops=gradientStops(config,kind),data=new Float32Array(64);
    stops.forEach((stop,i)=>{data.set(E.rgb(stop.color),i*4);data[i*4+3]=stop.position;});
@@ -836,5 +837,11 @@ for(const kind of ['sphere','background']){
  $(kind+'-gradient-reset').onclick=()=>{state[kind+'Stops']=null;edited();};
  refresh();
 }
+
+$('lockTypeSize').onchange=()=>{
+ const enabled=$('lockTypeSize').checked;
+ if(enabled)state.typeSizeReferenceRadius=E.radius(state,width,height,world.particles.length);
+ state.lockTypeSize=enabled;edited();
+};
 </script>
 </body></html>

@@ -18,7 +18,7 @@ function setRangeFill(el){el.style.setProperty('--fill',((Number(el.value)-Numbe
 function syncUI(){
  if(gradientEditors)for(const editor of gradientEditors)editor.refresh();
  for(const name of Object.keys(E.ranges)){const el=$(name);el.value=state[name];if(document.activeElement!==$(name+'-out'))$(name+'-out').value=Math.round(state[name]);setRangeFill(el);}
- for(const name of ['visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).checked=state[name];
+ for(const name of ['visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).checked=state[name];
  for(const name of ['font','layout',...E.colors])$(name).value=state[name];
  $('pause').textContent=paused?'▶ 재생':'Ⅱ 일시정지';$('pause').setAttribute('aria-pressed',String(paused));
  $('timeline-play').textContent=timelinePlaying?'Ⅱ 반복 재생 정지':'▶ 타임라인 반복 재생';
@@ -44,7 +44,7 @@ function configAt(t,base=state,list=keys){return E.interpolate(list,t,base);}
 function stepWorld(targetWorld,target,base,list=keys){while(targetWorld.time+E.STEP<=target+1e-7){const t=targetWorld.time+E.STEP;targetWorld.step(E.STEP,configAt(t,base,list));}}
 function invalidateTimeline(reason){if(keys.length){keys=[];renderKeys();notice(reason+' 기존 키프레임을 지웠어요.');}cursor=0;timelinePlaying=false;}
 for(const name of Object.keys(E.ranges))$(name).oninput=()=>{state[name]=Number($(name).value);edited();};
-for(const name of ['visible','collision','hold','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
+for(const name of ['visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
 for(const name of ['font',...E.colors])$(name).oninput=()=>{state[name]=$(name).value;edited();updateIndividual();};
 $('flowThrough').onchange=()=>{if(gesture||exporting)return;state.flowThrough=$('flowThrough').checked;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice(state.flowThrough?'아래 화면 밖에서 출발합니다.':'닫힌 공간의 배치로 돌아왔어요.');};
 $('restart-flight').onclick=()=>{if(gesture||exporting)return;state.flowThrough=true;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice('아래에서 다시 출발해요.');};
@@ -237,10 +237,10 @@ vec3 backgroundRamp(float t){
  vec4 a=backgroundStops[0];
  for(int i=1;i<16;i++){if(i>=backgroundStopCount)break;vec4 b=backgroundStops[i];if(t<=b.a)return mix(a.rgb,b.rgb,clamp((t-a.a)/max(.00001,b.a-a.a),0.0,1.0));a=b;}return a.rgb;
 }
-uniform sampler2D lettering;uniform vec3 color;uniform vec3 inkColor;uniform vec3 background;uniform vec3 backgroundEnd;uniform vec3 sphereEnd;uniform float useBackgroundGradient;uniform float useSphereGradient;uniform float visible;uniform mediump float letteringPass;varying vec2 texUV;varying float facing;varying float bodyHeight;varying vec2 gradientPoint;void main(){if(letteringPass>2.5){gl_FragColor=vec4(mix(background,backgroundRamp(gradientT(texUV,backgroundMode,backgroundAngle)),useBackgroundGradient),1.0);return;}if(letteringPass<.5){if(visible<.5||facing<0.0)discard;gl_FragColor=vec4(mix(color,sphereRamp(gradientT(gradientPoint,sphereMode,sphereAngle)),useSphereGradient),1.0);}else{if(visible>.5&&facing<0.0)discard;float alpha=texture2D(lettering,texUV).a;if(alpha<.02)discard;gl_FragColor=vec4(inkColor,alpha);}}`;
+uniform sampler2D lettering;uniform float letteringScale;uniform vec3 color;uniform vec3 inkColor;uniform vec3 background;uniform vec3 backgroundEnd;uniform vec3 sphereEnd;uniform float useBackgroundGradient;uniform float useSphereGradient;uniform float visible;uniform mediump float letteringPass;varying vec2 texUV;varying float facing;varying float bodyHeight;varying vec2 gradientPoint;void main(){if(letteringPass>2.5){gl_FragColor=vec4(mix(background,backgroundRamp(gradientT(texUV,backgroundMode,backgroundAngle)),useBackgroundGradient),1.0);return;}if(letteringPass<.5){if(visible<.5||facing<0.0)discard;gl_FragColor=vec4(mix(color,sphereRamp(gradientT(gradientPoint,sphereMode,sphereAngle)),useSphereGradient),1.0);}else{if(visible>.5&&facing<0.0)discard;vec2 letterUV=(texUV-.5)*letteringScale+.5;if(any(lessThan(letterUV,vec2(0.0)))||any(greaterThan(letterUV,vec2(1.0))))discard;float alpha=texture2D(lettering,letterUV).a;if(alpha<.02)discard;gl_FragColor=vec4(inkColor,alpha);}}`;
  function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
  const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vert));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,frag));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('3D 프로그램을 시작하지 못했습니다.');gl.useProgram(program);
- const uniforms={};for(const n of ['center','angles','viewport','radius','squash','squashAxis','lettering','color','inkColor','background','visible','letteringPass','backgroundEnd','sphereEnd','useBackgroundGradient','useSphereGradient','sphereStops[0]','backgroundStops[0]','sphereStopCount','backgroundStopCount','sphereMode','backgroundMode','sphereAngle','backgroundAngle'])uniforms[n]=gl.getUniformLocation(program,n);
+ const uniforms={};for(const n of ['center','angles','viewport','radius','squash','squashAxis','lettering','letteringScale','color','inkColor','background','visible','letteringPass','backgroundEnd','sphereEnd','useBackgroundGradient','useSphereGradient','sphereStops[0]','backgroundStops[0]','sphereStopCount','backgroundStopCount','sphereMode','backgroundMode','sphereAngle','backgroundAngle'])uniforms[n]=gl.getUniformLocation(program,n);
  const points=[],uvs=[],indices=[],nx=64,ny=32;
  for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const u=i/nx,v=j/ny,lon=(u-.5)*Math.PI*2,lat=(.5-v)*Math.PI;points.push(Math.sin(lon)*Math.cos(lat),Math.sin(lat),Math.cos(lon)*Math.cos(lat));uvs.push(u,v);}
  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i;indices.push(a,a+nx+1,a+1,a+1,a+nx+1,a+nx+2);}
@@ -253,7 +253,7 @@ uniform sampler2D lettering;uniform vec3 color;uniform vec3 inkColor;uniform vec
  if(metrics&&Number.isFinite(metrics.actualBoundingBoxLeft)&&Number.isFinite(metrics.actualBoundingBoxAscent)){ctx.fillText(char,512+(metrics.actualBoundingBoxLeft-metrics.actualBoundingBoxRight)/2,256+(metrics.actualBoundingBoxAscent-metrics.actualBoundingBoxDescent)/2);}else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(char,512,256,500);} const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);textures.set(char,t);return t;}
  function draw(sim,config){
   const nextSignature=[Math.round(config.typeSize*4/3),Math.round(config.weight),config.font].join('|');if(nextSignature!==signature){clearTextures();signature=nextSignature;}
-  gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...bg,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,sim.particles.length);
+  gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...bg,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,sim.particles.length);gl.uniform1f(uniforms.letteringScale,config.lockTypeSize?r/config.typeSizeReferenceRadius:1);
   for(const kind of ['sphere','background']){
    const stops=gradientStops(config,kind),data=new Float32Array(64);
    stops.forEach((stop,i)=>{data.set(E.rgb(stop.color),i*4);data[i*4+3]=stop.position;});
@@ -414,3 +414,9 @@ for(const kind of ['sphere','background']){
  $(kind+'-gradient-reset').onclick=()=>{state[kind+'Stops']=null;edited();};
  refresh();
 }
+
+$('lockTypeSize').onchange=()=>{
+ const enabled=$('lockTypeSize').checked;
+ if(enabled)state.typeSizeReferenceRadius=E.radius(state,width,height,world.particles.length);
+ state.lockTypeSize=enabled;edited();
+};
