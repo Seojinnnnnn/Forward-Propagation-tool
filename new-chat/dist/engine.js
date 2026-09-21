@@ -3,7 +3,7 @@
 'use strict';
 const STEP=1/120;
 const defaults={lockTypeSize:false,typeSizeReferenceRadius:10.4,sphereStops:null,backgroundStops:null,sphereGradientMode:"linear",backgroundGradientMode:"linear",sphereGradientAngle:0,backgroundGradientAngle:0,sphereGradient:false,backgroundGradient:false,sphereColorEnd:"#3d9fff",backgroundColorEnd:"#792cff",float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
-const ranges={letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[1,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
+const ranges={letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[1,600],typeSize:[1,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
 const colors=['color','ink','background','sphereColorEnd','backgroundColorEnd'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function validateConfig(input){
