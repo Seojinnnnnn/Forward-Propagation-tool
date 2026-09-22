@@ -116,14 +116,18 @@ body .key-chip button{padding:4px 5px}
 body .panel-handle{width:24px;height:72px;padding:0;font-size:25px}
 #format-note,#interaction-hint{display:none}
 .canvas-tools{margin-bottom:8px}
+
+.gradient-editor{padding-bottom:12px}.gradient-bar{position:relative;height:32px;margin:6px 10px 22px;border:1px solid #888;border-radius:4px;touch-action:none;cursor:crosshair}
+body .gradient-stop{position:absolute;top:22px;transform:translateX(-50%);width:15px;height:22px;padding:0;border:2px solid #fff;box-shadow:0 0 0 1px #333;border-radius:3px;touch-action:none}
+body .gradient-stop[aria-pressed="true"]{outline:2px solid #888;outline-offset:3px}.gradient-editor .inline{margin:10px 0}.gradient-editor input[type=number]{width:60px;padding:6px}
 </style></head>
 <body>
 <main>
 <button id="toggle-left-panel" class="panel-handle panel-handle-left" aria-controls="motion-controls" aria-expanded="true" aria-label="왼쪽 패널 접기" title="왼쪽 패널 접기">‹</button>
 <button id="toggle-right-panel" class="panel-handle panel-handle-right" aria-controls="controls" aria-expanded="true" aria-label="오른쪽 패널 접기" title="오른쪽 패널 접기">›</button>
-<aside id="motion-controls" aria-label="움직임과 바람"><details open><summary>움직임 · 바람</summary><div class="detail-body"><label class="toggle-row" for="flowThrough"><span>아래에서 위로 날리기<small>위아래를 열고 모든 풍선을 화면 아래에서 출발시켜요.</small></span><input id="flowThrough" type="checkbox" role="switch"></label><button id="restart-flight" class="restart-flight">아래에서 다시 시작</button><label class="toggle-row" for="openTop"><span>위로 날아가기<small>켜면 위쪽이 열리고 떠올라요. 고정점에 연결한 풍선은 그대로 묶여 있어요.</small></span><input id="openTop" type="checkbox" role="switch"></label><p class="hint">화면 밖으로 나간 풍선은 ‘정렬하기’로 다시 모을 수 있어요.</p>
+<aside id="motion-controls" aria-label="움직임과 바람"><details open><summary>움직임 · 바람</summary><div class="detail-body"><label class="toggle-row" for="flowThrough"><span>아래에서 위로 날리기<small>위아래를 열고 모든 풍선을 화면 아래에서 출발시켜요.</small></span><input id="flowThrough" type="checkbox" role="switch"></label><label class="toggle-row" for="repeatFlight"><span>연속 올라오기<small>현재 배열이 일정 간격으로 이어져, 앞의 풍선이 나가기 전 다음 풍선이 들어와요.</small></span><input id="repeatFlight" type="checkbox" role="switch"></label><button id="start-filled" class="restart-flight">화면을 채운 상태로 시작</button><button id="restart-flight" class="restart-flight">아래에서 다시 시작</button><label class="toggle-row" for="openTop"><span>위로 날아가기<small>켜면 위쪽이 열리고 떠올라요. 고정점에 연결한 풍선은 그대로 묶여 있어요.</small></span><input id="openTop" type="checkbox" role="switch"></label><p class="hint">화면 밖으로 나간 풍선은 ‘정렬하기’로 다시 모을 수 있어요.</p>
 <label class="range-label" for="float">두둥실 <input id="float-out" class="range-value" type="number" min="0" max="100" step="1" value="32" aria-label="두둥실 수치"></label><input id="float" type="range" min="0" max="100" value="32">
-<label class="range-label" for="speed">움직임 속도 <input id="speed-out" class="range-value" type="number" min="0" max="100" step="1" value="28" aria-label="움직임 속도 수치"></label><input id="speed" type="range" min="0" max="100" value="28">
+<label class="toggle-row" for="verticalBob"><span>위아래 흔들림</span><input id="verticalBob" type="checkbox" role="switch" checked></label><label class="range-label" for="verticalRange">위아래 움직임 폭 (%) <input id="verticalRange-out" class="range-value" type="number" min="0" max="200" step="1" value="100" aria-label="위아래 움직임 폭 수치"></label><input id="verticalRange" type="range" min="0" max="200" value="100"><p class="hint">100은 현재 폭, 200은 흔들리는 힘 2배예요. 꺼도 상승 바람과 충돌은 유지돼요.</p><label class="range-label" for="speed">움직임 속도 <input id="speed-out" class="range-value" type="number" min="0" max="100" step="1" value="28" aria-label="움직임 속도 수치"></label><input id="speed" type="range" min="0" max="100" value="28">
 <label class="range-label" for="rotation">랜덤 360° 회전 속도 <input id="rotation-out" class="range-value" type="number" min="0" max="100" step="1" value="30" aria-label="랜덤 360° 회전 속도 수치"></label><input id="rotation" type="range" min="0" max="100" value="30"><label class="range-label" for="rotationShare">최대 회전 참여 비율 (%) <input id="rotationShare-out" class="range-value" type="number" min="0" max="100" step="5" value="30" aria-label="최대 회전 참여 비율 (%) 수치"></label><input id="rotationShare" type="range" min="0" max="100" step="5" value="30"><p class="hint">화면 안의 풍선 중 일부를 무작위로 골라요. 새로 들어오거나 오래 쉬었던 풍선에 먼저 회전 기회를 줘요. 0%에서는 회전하지 않아요.</p>
 <div class="subheading">바람이 불어오는 방향</div><p class="hint">여러 방향을 함께 조절할 수 있어요.</p>
 <div class="wind-grid">
@@ -144,17 +148,17 @@ body .panel-handle{width:24px;height:72px;padding:0;font-size:25px}
 <label class="range-label" for="weight">글자 굵기 <input id="weight-out" class="range-value" type="number" min="100" max="900" step="1" value="500" aria-label="글자 굵기 수치"></label><input id="weight" type="range" min="100" max="900" step="1" value="500"></section>
 
 <details open><summary>형태 · 정렬 · 색상</summary><div class="detail-body">
-<label class="range-label" for="size">구 크기 <input id="size-out" class="range-value" type="number" min="20" max="600" step="1" value="20" aria-label="구 크기 수치"></label><input id="size" type="range" min="20" max="600" value="20">
+<label class="range-label" for="size">구 크기 <input id="size-out" class="range-value" type="number" min="1" max="600" step="1" value="20" aria-label="구 크기 수치"></label><input id="size" type="range" min="1" max="600" value="20"><input id="lockTypeSize" type="checkbox" checked hidden><p class="hint">구 크기를 바꿔도 글자 크기는 유지돼요.</p>
 <label class="toggle-row" for="visible"><span>구 보이기<small>끄면 구만 투명해지고 앞뒤 글자는 모두 남아요.</small></span><input id="visible" type="checkbox" role="switch" checked></label>
-<label class="range-label" for="layout">구 정렬</label><div class="inline"><select id="layout"><option value="text">글자 순서</option><option value="row">가로 정렬</option><option value="column">세로 정렬</option><option value="grid">격자 정렬</option><option value="circle">원형 정렬</option><option value="diagonal">대각선 ↘</option><option value="zigzag">지그재그</option><option value="rings">동심원</option></select><button id="arrange">정렬하기</button></div>
-<label class="range-label" for="letterSpacing">자간 · 가로 간격 <input id="letterSpacing-out" class="range-value" type="number" min="0" max="300" step="1" value="0" aria-label="자간 · 가로 간격 수치"></label><input id="letterSpacing" type="range" min="0" max="300" value="0"><label class="range-label" for="lineSpacing">행간 · 세로 간격 <input id="lineSpacing-out" class="range-value" type="number" min="0" max="300" step="1" value="0" aria-label="행간 · 세로 간격 수치"></label><input id="lineSpacing" type="range" min="0" max="300" value="0"><p class="hint">기본 간격에 여유를 더해요. 화면이 꽉 차면 간격이 제한될 수 있어요.</p><label class="toggle-row" for="hold"><span>정렬 유지<small>바람을 받아도 제자리로 돌아와요.</small></span><input id="hold" type="checkbox" role="switch"></label>
-<div class="color-grid"><label for="color">기본 구 <input id="color" type="color" value="#d9ff96"></label><label for="ink">글자 <input id="ink" type="color" value="#211c19"></label><label for="background">배경 <input id="background" type="color" value="#ffffff"></label></div>
+<label class="range-label" for="layout">구 정렬</label><div class="inline"><select id="layout"><option value="text">글자 순서</option><option value="row">가로 정렬</option><option value="column">세로 정렬</option><option value="grid">격자 정렬</option><option value="circle">원형 정렬</option><option value="diagonal">대각선 ↘</option><option value="zigzag">지그재그</option><option value="rings">동심원</option></select><button id="arrange">정렬하기</button></div><label class="range-label" for="startSpread">시작 위치 섞기 범위 (%) <input id="startSpread-out" class="range-value" type="number" min="0" max="100" step="1" value="5" aria-label="시작 위치 섞기 범위 수치"></label><input id="startSpread" type="range" min="0" max="100" value="5"><p class="hint">0은 원래 배치, 100은 짧은 변의 절반만큼 상하좌우로 흩어져요. 버튼을 누르면 새 배치를 만듭니다.</p><button id="random-start" style="margin-top:8px;width:100%">시작 위치 섞기</button>
+<label class="range-label" for="letterSpacing">자간 · 가로 간격 <input id="letterSpacing-out" class="range-value" type="number" min="0" max="300" step="1" value="0" aria-label="자간 · 가로 간격 수치"></label><input id="letterSpacing" type="range" min="0" max="300" value="0"><label class="range-label" for="lineSpacing">행간 · 세로 간격 <input id="lineSpacing-out" class="range-value" type="number" min="0" max="300" step="1" value="0" aria-label="행간 · 세로 간격 수치"></label><input id="lineSpacing" type="range" min="0" max="300" value="0"><p class="hint">기본 간격에 여유를 더해요. 판형 밖까지 간격을 넓힐 수 있어요.</p><label class="toggle-row" for="hold"><span>정렬 유지<small>바람을 받아도 제자리로 돌아와요.</small></span><input id="hold" type="checkbox" role="switch"></label>
+<div class="color-grid"><label for="color">기본 구 <input id="color" type="color" value="#d9ff96"></label><label for="ink">글자 <input id="ink" type="color" value="#211c19"></label><label for="background">배경 <input id="background" type="color" value="#ffffff"></label></div><details class="gradient-editor"><summary>구 그라디언트 편집</summary><div id="sphere-gradient-bar" class="gradient-bar" aria-label="구 그라디언트 색상 포인트"></div><p class="hint">바 클릭: 색 추가 · 포인트 드래그: 위치 이동 (최대 16색)</p><div class="inline"><input id="sphere-stop-color" type="color" aria-label="선택한 색"><input id="sphere-stop-position" type="number" min="0" max="100" aria-label="색상 위치 퍼센트"><span>%</span><button id="sphere-stop-add">＋</button><button id="sphere-stop-remove">삭제</button></div><div class="inline"><select id="sphere-gradient-mode" aria-label="그라디언트 종류"><option value="linear">선형</option><option value="radial">방사형</option></select><input id="sphere-gradient-angle" type="number" min="0" max="360" value="0" aria-label="그라디언트 각도"><span>°</span></div><button id="sphere-gradient-reset">기본 두 색으로</button></details><details class="gradient-editor"><summary>배경 그라디언트 편집</summary><div id="background-gradient-bar" class="gradient-bar" aria-label="배경 그라디언트 색상 포인트"></div><p class="hint">바 클릭: 색 추가 · 포인트 드래그: 위치 이동 (최대 16색)</p><div class="inline"><input id="background-stop-color" type="color" aria-label="선택한 색"><input id="background-stop-position" type="number" min="0" max="100" aria-label="색상 위치 퍼센트"><span>%</span><button id="background-stop-add">＋</button><button id="background-stop-remove">삭제</button></div><div class="inline"><select id="background-gradient-mode" aria-label="그라디언트 종류"><option value="linear">선형</option><option value="radial">방사형</option></select><input id="background-gradient-angle" type="number" min="0" max="360" value="0" aria-label="그라디언트 각도"><span>°</span></div><button id="background-gradient-reset">기본 두 색으로</button></details><label class="toggle-row" for="sphereGradient"><span>구 그라디언트</span><input id="sphereGradient" type="checkbox" role="switch"></label><label class="toggle-row" for="backgroundGradient"><span>배경 그라디언트</span><input id="backgroundGradient" type="checkbox" role="switch"></label><div class="color-grid"><label for="sphereColorEnd">구 끝 색상<input id="sphereColorEnd" type="color" value="#3d9fff"></label><label for="backgroundColorEnd">배경 끝 색상<input id="backgroundColorEnd" type="color" value="#792cff"></label></div><p class="hint">편집기에서 색과 위치를 자유롭게 조절하세요. 직접 편집한 구 그라디언트는 모든 구에 공통 적용돼요.</p>
 <label class="range-label" for="sphere-select">구 · 글자 선택</label><div class="inline"><select id="sphere-select"></select><input title="개별 구 색상" id="individual-color" type="color" value="#d9ff96" aria-label="선택한 구의 색상"><button id="clear-color" title="기본 색으로 되돌리기">구색 해제</button></div><label class="range-label" for="individual-ink">선택한 글자 색상</label><div class="inline"><input id="individual-ink" type="color" value="#211c19" aria-label="선택한 글자의 색상"><button id="clear-ink">글자색 해제</button></div>
 </div></details><div class="panel-foot">빛과 그림자 없이, 형태와 움직임만.</div>
 </aside>
 <article>
 
-<div class="canvas-toolbar"><div class="canvas-format"><label for="resolution">판형 <select id="resolution"><optgroup label="가로 화면"><option value="1280x720">HD 가로 · 1280 × 720</option><option value="1920x1080">Full HD 가로 · 1920 × 1080</option></optgroup><optgroup label="A0~A4 / 인쇄용"><option value="9933x14043">A0 세로 · 9933 × 14043</option><option value="14043x9933">A0 가로 · 14043 × 9933</option><option value="7016x9933">A1 세로 · 7016 × 9933</option><option value="9933x7016">A1 가로 · 9933 × 7016</option><option value="4960x7016">A2 세로 · 4960 × 7016</option><option value="7016x4960">A2 가로 · 7016 × 4960</option><option value="3508x4960">A3 세로 · 3508 × 4960</option><option value="4960x3508">A3 가로 · 4960 × 3508</option><option value="2480x3508">A4 세로 · 2480 × 3508</option><option value="3508x2480">A4 가로 · 3508 × 2480</option></optgroup><optgroup label="인스타그램"><option value="1080x1080">정사각 피드 · 1080 × 1080</option><option value="1080x1350" selected>세로 피드 4:5 · 1080 × 1350</option><option value="1080x1440">세로 피드 3:4 · 1080 × 1440</option><option value="1080x1920">스토리 · 릴스 9:16 · 1080 × 1920</option></optgroup><optgroup label="세로 화면"><option value="720x1280">HD 세로 · 720 × 1280</option><option value="1200x1800">세로 포스터 2:3 · 1200 × 1800</option><option value="1080x2160">긴 세로 1:2 · 1080 × 2160</option></optgroup></select></label></div><span>라이브 캔버스 <span class="resolution" id="resolution-label"></span></span><div class="toolbar-actions"><label class="button-label" title="공유받은 설정 JSON 파일을 선택하면 이 화면에 적용됩니다">설정 JSON 불러오기<input id="load-project" type="file" accept=".json,application/json" aria-label="설정 JSON 파일 불러오기"></label><button id="snapshot">PNG 한 장</button><button id="pause" aria-pressed="false">Ⅱ 일시정지</button><button id="replay-zero">↺ 0초부터 재생</button></div></div>
+<div class="canvas-toolbar"><div class="canvas-format"><label for="resolution">판형 <select id="resolution"><optgroup label="가로 화면"><option value="1280x720">HD 가로 · 1280 × 720</option><option value="1920x1080">Full HD 가로 · 1920 × 1080</option></optgroup><optgroup label="A0~A4 / 인쇄용"><option value="9933x14043">A0 세로 · 9933 × 14043</option><option value="14043x9933">A0 가로 · 14043 × 9933</option><option value="7016x9933">A1 세로 · 7016 × 9933</option><option value="9933x7016">A1 가로 · 9933 × 7016</option><option value="4960x7016">A2 세로 · 4960 × 7016</option><option value="7016x4960">A2 가로 · 7016 × 4960</option><option value="3508x4960">A3 세로 · 3508 × 4960</option><option value="4960x3508">A3 가로 · 4960 × 3508</option><option value="2480x3508">A4 세로 · 2480 × 3508</option><option value="3508x2480">A4 가로 · 3508 × 2480</option></optgroup><optgroup label="인스타그램"><option value="1080x1080">정사각 피드 · 1080 × 1080</option><option value="1080x1350" selected>세로 피드 4:5 · 1080 × 1350</option><option value="1080x1440">세로 피드 3:4 · 1080 × 1440</option><option value="1080x1920">스토리 · 릴스 9:16 · 1080 × 1920</option></optgroup><optgroup label="세로 화면"><option value="720x1280">HD 세로 · 720 × 1280</option><option value="1200x1800">세로 포스터 2:3 · 1200 × 1800</option><option value="1080x2160">긴 세로 1:2 · 1080 × 2160</option></optgroup></select></label></div><span>라이브 캔버스 <span class="resolution" id="resolution-label"></span></span><div class="toolbar-actions"><label class="button-label" title="공유받은 설정 JSON 파일을 선택하면 이 화면에 적용됩니다">설정 JSON 불러오기<input id="load-project" type="file" accept=".json,application/json" aria-label="설정 JSON 파일 불러오기"></label><label class="toggle-row" style="margin:0;gap:8px" title="PNG 한 장과 PNG 프레임 ZIP에 적용됩니다"><span>배경 투명하게 저장</span><input id="transparent-export" type="checkbox" role="switch" aria-label="배경 투명하게 저장 · PNG 전용"></label><button id="snapshot">PNG 한 장</button><button id="pause" aria-pressed="false">Ⅱ 일시정지</button><button id="replay-zero">↺ 0초부터 재생</button></div></div>
 <p class="hint" id="format-note"></p><div class="canvas-tools" aria-label="캔버스 편집 도구"><div class="tool-modes" role="group" aria-label="마우스 모드"><button id="tool-move" aria-pressed="true">선택 · 이동</button><button id="tool-draw" aria-pressed="false">드래그로 생성</button></div><label class="quick-toggle" for="visible-canvas"><input id="visible-canvas" type="checkbox" role="switch" checked> 구 보이기</label><label class="quick-toggle theme-toggle" for="toggle-theme"><input id="toggle-theme" type="checkbox" role="switch"> 나이트 모드</label><label class="brush-label" for="brush-text" id="brush-controls" hidden>그릴 글자 <input id="brush-text" type="text" value="오ㄹ류페스티벌" spellcheck="false"></label><button id="clear-all" hidden>전체 지우기</button></div><p id="interaction-hint" class="interaction-hint">구를 클릭하고 드래그해서 옮기세요. 선택 후 방향키로도 이동할 수 있어요.</p><div class="stage-wrap"><div id="stage"><canvas id="canvas" tabindex="0" aria-label="구 선택 및 이동 캔버스. 방향키로 선택한 구 이동, Escape로 드래그 취소." aria-describedby="interaction-hint"></canvas><svg id="selection-overlay" aria-hidden="true"><circle id="selection-ring" cx="0" cy="0" r="0" visibility="hidden"/></svg><div id="empty" hidden>어떤 글자를 띄워볼까요?</div><div id="error" hidden>3D 화면을 시작할 수 없어요. 브라우저의 하드웨어 가속을 확인해주세요.</div><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span></div></div>
 <div class="live-caption"><span><i></i> <span id="status">자유롭게 떠다니는 중</span></span><span id="mode-label">SHARED SPACE · FLAT SPHERES</span></div>
 <details class="timeline" aria-label="키프레임과 내보내기"><summary>키프레임 · 내보내기</summary><div class="timeline-body">
@@ -169,19 +173,25 @@ body .panel-handle{width:24px;height:72px;padding:0;font-size:25px}
 (function(root){
 'use strict';
 const STEP=1/120;
-const defaults={float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
-const ranges={letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[20,600],typeSize:[1,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
-const colors=['color','ink','background'];
+const defaults={verticalBob:true,verticalRange:100,startFilled:false,repeatFlight:false,startSpread:5,startSeed:0,lockTypeSize:true,typeSizeReferenceRadius:10.4,sphereStops:null,backgroundStops:null,sphereGradientMode:"linear",backgroundGradientMode:"linear",sphereGradientAngle:0,backgroundGradientAngle:0,sphereGradient:false,backgroundGradient:false,sphereColorEnd:"#3d9fff",backgroundColorEnd:"#792cff",float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
+const ranges={verticalRange:[0,200],startSpread:[0,100],letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[1,600],typeSize:[1,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
+const colors=['color','ink','background','sphereColorEnd','backgroundColorEnd'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function validateConfig(input){
  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('설정 형식을 확인해주세요.');
  const out={...defaults};
  for(const [key,value]of Object.entries(input)){
+  if(key==='startSeed'){if(!Number.isInteger(value)||value<0||value>2147483647)throw Error('시작 배치 값을 확인해주세요.');out[key]=value;continue;}
   if(key==='accent')continue; // Older saved projects remain readable.
   if(!Object.prototype.hasOwnProperty.call(defaults,key))throw Error('알 수 없는 설정입니다: '+key);
-  if(ranges[key]){const [a,b]=ranges[key];if(typeof value!=='number'||!Number.isFinite(value)||value<a||value>b)throw Error('설정 범위를 확인해주세요: '+key);}
+  if(key==='typeSizeReferenceRadius'){if(typeof value!=='number'||!Number.isFinite(value)||value<=0||value>10000)throw Error('글자 크기 기준을 확인해주세요.');
+  }else if(key==='sphereStops'||key==='backgroundStops'){
+   if(value!==null&&(!Array.isArray(value)||value.length<2||value.length>16||value.some((s,i)=>!s||typeof s.position!=='number'||!Number.isFinite(s.position)||s.position<0||s.position>1||typeof s.color!=='string'||!/^#[0-9a-f]{6}$/i.test(s.color)||(i>0&&s.position<value[i-1].position))))throw Error('그라디언트 포인트를 확인해주세요.');
+  }else if(key.endsWith('GradientMode')){if(!['linear','radial'].includes(value))throw Error('그라디언트 종류를 확인해주세요.');
+  }else if(key.endsWith('GradientAngle')){if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>360)throw Error('그라디언트 각도를 확인해주세요.');
+  }else if(ranges[key]){const [a,b]=ranges[key];if(typeof value!=='number'||!Number.isFinite(value)||value<a||value>b)throw Error('설정 범위를 확인해주세요: '+key);}
   else if(colors.includes(key)){if(typeof value!=='string'||!/^#[0-9a-f]{6}$/i.test(value))throw Error('색상 형식을 확인해주세요.');}
-  else if(['visible','collision','hold','openTop','flowThrough'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
+  else if(['verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight','startFilled'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
   else if(key==='layout'&&!['text','row','column','grid','circle','diagonal','zigzag','rings'].includes(value))throw Error('정렬 방식을 확인해주세요.');
   else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google','pretendard'].includes(value))throw Error('폰트를 확인해주세요.');
   out[key]=value;
@@ -205,7 +215,7 @@ function interpolate(keys,t,fallback){
  const out={...a.config};
  for(const key of Object.keys(ranges))out[key]=a.config[key]+(b.config[key]-a.config[key])*f;
  for(const key of colors)out[key]=mixColor(a.config[key],b.config[key],f);
- if(t>=b.time-1e-8)for(const key of ['font','visible','collision','hold','openTop','flowThrough','layout'])out[key]=b.config[key];
+ if(t>=b.time-1e-8)for(const key of ['font','verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight','startFilled','layout'])out[key]=b.config[key];
  return out;
 }
 function radius(config,w,h,n){
@@ -215,13 +225,13 @@ function radius(config,w,h,n){
 }
 // Orthographic hit testing uses the front surface depth, not array order.
 function hitTest(world,config,x,y){
- const r=radius(config,world.width,world.height,world.particles.length);let hit=-1,front=-Infinity;
+ const r=radius(config,world.width,world.height,(world.sourceCount||world.particles.length));let hit=-1,front=-Infinity;
  for(const p of world.particles){const d2=(p.x-x)**2+(p.y-y)**2;if(d2>r*r)continue;const z=p.z+Math.sqrt(r*r-d2);if(z>front){front=z;hit=p.index;}}
  return hit;
 }
 function moveParticle(world,config,index,x,y){
- const p=world.particles[index];if(!p)return;const r=radius(config,world.width,world.height,world.particles.length);
- const bx=Math.max(0,world.width/2-r-24),by=Math.max(0,world.height/2-r-24);
+ const p=world.particles[index];if(!p)return;const r=radius(config,world.width,world.height,(world.sourceCount||world.particles.length));
+ const bx=Math.max(0,world.width/2-r-24+(world.spacingOverflowX||0)),by=Math.max(0,world.height/2-r-24+(world.spacingOverflowY||0));
  p.x=clamp(x,-bx,bx);p.y=clamp(y,-by,by);p.tx=p.x;p.ty=p.y;p.vx=p.vy=p.vz=0;
  if(Number.isInteger(p.anchor)&&world.particles[p.anchor]){const root=world.particles[p.anchor];p.offsetX=p.x-root.x;p.offsetY=p.y-root.y;p.offsetZ=p.z-root.z;}
 }
@@ -248,6 +258,7 @@ function balloonImpact(p,nx,ny,nz,speed,softness){
 class World{
  constructor(text,width,height,config){this.width=width;this.height=height;this.time=0;this.motionTime=0;this.rotationTimeline=0;this.layout=config.layout;this.particles=letters(text).map(s=>({...s,x:0,y:0,z:0,vx:0,vy:0,vz:0,spin:0}));this.arrange(config);}
  arrange(config){
+  this.particles=this.particles.filter(p=>p.sourceIndex===undefined);this.sourceCount=this.particles.length;this.repeatActive=!!config.repeatFlight;this.holdActive=!!config.hold;
   const ps=this.particles,n=ps.length,w=this.width,h=this.height,r=radius(config,w,h,n),margin=r+30;this.layout=config.layout;
   let targets=[];
   if(['diagonal','zigzag','rings'].includes(config.layout)){
@@ -276,26 +287,42 @@ class World{
     rows.set(row,Math.max(rows.get(row)||0,col+1));return {row,col};
    });
    const rowCount=Math.max(1,...Array.from(rows.keys(),r=>r+1));
-   const stepX=Math.min(r*2.35+config.letterSpacing,(w-margin*2)/Math.max(1,...Array.from(rows.values(),v=>v-1))),stepY=Math.min(r*2.35+config.lineSpacing,(h-margin*2)/Math.max(1,rowCount-1));
+   const stepX=Math.max(0,Math.min(r*2.35,(w-margin*2)/Math.max(1,...Array.from(rows.values(),v=>v-1))))+config.letterSpacing,stepY=Math.max(0,Math.min(r*2.35,(h-margin*2)/Math.max(1,rowCount-1)))+config.lineSpacing;
    targets=targets.map(p=>({x:(p.col-(rows.get(p.row)-1)/2)*stepX,y:((rowCount-1)/2-p.row)*stepY}));
   }
   if(['circle','rings','diagonal','zigzag'].includes(config.layout))targets=targets.map(p=>({x:p.x*(1+config.letterSpacing/(r*2.35)),y:p.y*(1+config.lineSpacing/(r*2.35))}));
+  this.spacingOverflowX=Math.max(0,...targets.map(p=>Math.abs(p.x)+r+24-w/2));
+  this.spacingOverflowY=Math.max(0,...targets.map(p=>Math.abs(p.y)+r+24-h/2));
+  if(config.startSeed){const spread=Math.min(w,h)*.5*(config.startSpread??5)/100;targets=targets.map((p,i)=>({x:p.x+(rotationRandom(i,config.startSeed)*2-1)*spread,y:p.y+(rotationRandom(i,config.startSeed+719)*2-1)*spread}));this.spacingOverflowX+=spread;this.spacingOverflowY+=spread;}
   this.letterSpacing=config.letterSpacing;this.lineSpacing=config.lineSpacing;
   ps.forEach((s,i)=>{s.pinned=false;delete s.anchor;s.x=targets[i].x;s.y=targets[i].y;s.z=0;s.tx=s.x;s.ty=s.y;s.vx=0;s.vy=0;s.vz=0;s.spin=0;s.turn=0;s.rotationClock=0;s.turnStart=null;s.turnDuration=0;s.turnDirection=1;s.turnReadyAt=0;s.lastTurnStart=-1;s.squash=0;s.squashVelocity=0;});
+  this.flightSpan=Math.max(h+4*r+24,Math.max(0,...ps.map(p=>p.y))-Math.min(0,...ps.map(p=>p.y))+h+4*r+config.lineSpacing+24);
   this.flowActive=!!config.flowThrough;
-  if(config.flowThrough&&ps.length){const highest=ps.reduce((v,p)=>Math.max(v,p.y),-Infinity);const shift=highest+h/2+r*1.2+12;for(const p of ps){p.y-=shift;p.ty=p.y;p.vy=60;}}
+  if((config.flowThrough||config.repeatFlight)&&ps.length){const highest=ps.reduce((v,p)=>Math.max(v,p.y),-Infinity);const shift=highest+h/2+r*1.2+12;for(const p of ps){p.y-=shift;p.ty=p.y;p.vy=60;}}
+  if(config.repeatFlight&&ps.length){
+   const top=Math.max(...ps.map(p=>p.y)),bottom=Math.min(...ps.map(p=>p.y));
+   const period=Math.max(r*2.35+config.lineSpacing,40)+top-bottom;
+   const copies=Math.max(2,Math.ceil((h+4*r)/period)+1),base=ps.map(p=>({...p}));
+   for(let j=1;j<copies;j++)for(const p of base)ps.push({...p,index:ps.length,sourceIndex:p.index,y:p.y-j*period,ty:p.ty-j*period});
+   this.flightSpan=copies*period;
+   if(config.startFilled){const shift=h-2*r;for(const p of ps){p.y+=shift;p.ty+=shift;}}
+  }
  }
  respace(config){
+  if(config.repeatFlight){this.arrange(config);return;}
+
   const old=this.particles.map(p=>({...p}));this.arrange(config);
   this.particles.forEach((p,i)=>{const tx=p.tx,ty=p.ty;Object.assign(p,old[i]);p.x+=tx-old[i].tx;p.y+=ty-old[i].ty;p.tx=tx;p.ty=ty;});
  }
  step(dt,config){
+  if(!!config.repeatFlight!==!!this.repeatActive)this.arrange(config);
   if(this.letterSpacing!==config.letterSpacing||this.lineSpacing!==config.lineSpacing)this.respace(config);
   if(!!config.flowThrough!==!!this.flowActive){if(config.flowThrough)this.arrange(config);else this.flowActive=false;}
   if(config.layout!==this.layout)this.arrange(config);
+  if(!!config.hold!==!!this.holdActive){if(config.hold)for(const p of this.particles)p.ty=p.y;this.holdActive=!!config.hold;}
   this.time+=dt;const d=dt*config.speed/40;if(d===0)return;
   this.motionTime+=d;
-  const t=this.motionTime,ps=this.particles,r=radius(config,this.width,this.height,ps.length),amp=config.float/100;
+  const t=this.motionTime,ps=this.particles,r=radius(config,this.width,this.height,this.sourceCount||ps.length),amp=config.float/100;
   this.rotationTimeline=(this.rotationTimeline||0)+d*config.rotation/100*2;
   const clock=this.rotationTimeline;
   // Each selected balloon keeps its own full-turn clock, even as visibility changes.
@@ -313,7 +340,7 @@ class World{
    const candidates=visible.filter(p=>p.turnStart==null&&clock>=(p.turnReadyAt||0)).sort((a,b)=>(a.lastTurnStart??-1)-(b.lastTurnStart??-1)||rotationRandom(a.index,selectionRound+99)-rotationRandom(b.index,selectionRound+99));
    for(const p of candidates.slice(0,Math.max(0,target-active))){p.turnStart=clock;p.lastTurnStart=clock;p.turnDuration=3.4+rotationRandom(p.index,selectionRound*13+202)*2.2;p.turnDirection=rotationRandom(p.index,selectionRound*13+203)<.5?-1:1;p.turn=0;}
   }
-  const ax=(config.windLeft-config.windRight)*2.3,ay=(config.windBottom-config.windTop)*2.3+((config.openTop||config.flowThrough)?30:0);
+  const ax=(config.windLeft-config.windRight)*2.3,ay=(config.windBottom-config.windTop)*2.3+((config.openTop||config.flowThrough||config.repeatFlight)?30:0);
   for(const s of ps){
    if(s.pinned){s.vx=s.vy=s.vz=0;continue;}
    const anchor=Number.isInteger(s.anchor)?ps[s.anchor]:null;
@@ -324,11 +351,21 @@ class World{
    if(q>.14){q=.14;sv=Math.min(0,sv);}if(q<-.06){q=-.06;sv=Math.max(0,sv);}
    s.squash=q;s.squashVelocity=sv;
    s.vx+=(ax+(Math.sin(t*.64+p)*30+Math.sin(t*1.27+p)*12)*amp+(config.hold?(s.tx-s.x)*2.8:0))*d;
-   s.vy+=(ay+(Math.sin(t*1.75+p)*100+Math.sin(t*3.5+p*2)*28+Math.cos(t*.39+p)*18)*amp+(config.hold&&!config.openTop&&!config.flowThrough?(s.ty-s.y)*2.8:0))*d;
+   // Keep vertical bobbing bounded around a steadily rising target in flight modes.
+   const heldFlight=config.hold&&(config.openTop||config.flowThrough||config.repeatFlight);
+   const riseSpeed=heldFlight?clamp(ay/.52,-300,300):0;
+   if(heldFlight)s.ty+=riseSpeed*d;
+   s.vy+=(ay+(Math.sin(t*1.75+p)*100+Math.sin(t*3.5+p*2)*28+Math.cos(t*.39+p)*18)*amp*(config.verticalBob===false?0:(config.verticalRange??100)/100)*(config.hold?.6:1)+(config.hold?(s.ty-s.y)*4-(s.vy-riseSpeed)*.8:0))*d;
    s.vz+=(Math.sin(t*.63+p)*amp*20-s.z*.32)*d;
    const damp=Math.exp(-.52*d);s.vx*=damp;s.vy*=damp;s.vz*=damp;
    const speed=Math.hypot(s.vx,s.vy,s.vz);if(speed>380){s.vx*=380/speed;s.vy*=380/speed;s.vz*=380/speed;}
    s.x+=s.vx*d;s.y+=s.vy*d;s.z+=s.vz*d;s.spin*=Math.exp(-1.6*d);
+  }
+  if(config.repeatFlight){
+   const span=Math.max(this.height+4*r+24,this.flightSpan||0);
+   for(const s of ps){if(s.pinned||Number.isInteger(s.anchor))continue;
+    if(s.y>this.height/2+r*1.3+12){const shift=Math.ceil((s.y-(this.height/2+r*1.3+12))/span)*span;s.y-=shift;s.ty-=shift;}
+   }
   }
   // Resolve screen-space contacts so depth cannot hide overlapping silhouettes.
   for(let iteration=0;iteration<(config.collision?10:1);iteration++){
@@ -352,15 +389,15 @@ class World{
    }
   }
   for(const s of ps){
-   const bx=Math.max(0,this.width/2-r-24),by=Math.max(0,this.height/2-r-24),bz=Math.max(35,r*.8);const restitution=.4+config.bounce/100*.55;
+   const bx=Math.max(0,this.width/2-r-24+(this.spacingOverflowX||0)),by=Math.max(0,this.height/2-r-24+(this.spacingOverflowY||0)),bz=Math.max(35,r*.8);const restitution=.4+config.bounce/100*.55;
    for(const [pos,vel,bound]of [['x','vx',bx],['y','vy',by],['z','vz',bz]]){
-    if(s[pos]>bound&&!((config.openTop||config.flowThrough)&&pos==='y')){s[pos]=bound;if(s[vel]>0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,s[vel],config.softness);s[vel]*=-restitution;}}
-    else if(s[pos]<-bound&&!(config.flowThrough&&pos==='y')){s[pos]=-bound;if(s[vel]<0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,-s[vel],config.softness);s[vel]*=-restitution;}}
+    if(s[pos]>bound&&!((config.openTop||config.flowThrough||config.repeatFlight)&&pos==='y')){s[pos]=bound;if(s[vel]>0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,s[vel],config.softness);s[vel]*=-restitution;}}
+    else if(s[pos]<-bound&&!((config.flowThrough||config.repeatFlight)&&pos==='y')){s[pos]=-bound;if(s[vel]<0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,-s[vel],config.softness);s[vel]*=-restitution;}}
    }
   }
   }
  }
- snapshot(){return {rotationSelectionRound:this.rotationSelectionRound,letterSpacing:this.letterSpacing,lineSpacing:this.lineSpacing,flowActive:!!this.flowActive,width:this.width,height:this.height,time:this.time,motionTime:this.motionTime,rotationTimeline:this.rotationTimeline,layout:this.layout,particles:this.particles.map(s=>({...s}))};}
+ snapshot(){return {holdActive:this.holdActive,sourceCount:this.sourceCount,repeatActive:this.repeatActive,flightSpan:this.flightSpan,spacingOverflowX:this.spacingOverflowX,spacingOverflowY:this.spacingOverflowY,rotationSelectionRound:this.rotationSelectionRound,letterSpacing:this.letterSpacing,lineSpacing:this.lineSpacing,flowActive:!!this.flowActive,width:this.width,height:this.height,time:this.time,motionTime:this.motionTime,rotationTimeline:this.rotationTimeline,layout:this.layout,particles:this.particles.map(s=>({...s}))};}
  restore(s){Object.assign(this,s,{particles:s.particles.map(p=>({...p}))});}
 }
 const api={STEP,defaults,ranges,colors,validateConfig,letters,rgb,mixColor,interpolate,radius,hitTest,moveParticle,sampleSegment,rotatingIndices,rotationProfile,rotationRate,World};
@@ -423,15 +460,16 @@ let googleFont=null,googleLink=null,fontBusy=false;
 let exportController=null;
 let initialPositions=null,toolMode='move',selected=-1,gesture=null;
 const canvas=$('canvas');
-const gl=canvas.getContext('webgl',{alpha:false,antialias:true,preserveDrawingBuffer:true});
+const gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:true,antialias:true,preserveDrawingBuffer:true});
 const fonts={pretendard:'"Pretendard Variable", sans-serif',gothic:'"Apple SD Gothic Neo", "Malgun Gothic", sans-serif',serif:'"AppleMyungjo", "Batang", serif',rounded:'"Arial Rounded MT Bold", "NanumSquareRound", "Apple SD Gothic Neo", sans-serif',mono:'"D2Coding", "SFMono-Regular", monospace',brush:'"GungSeo", "Gungsuh", serif',custom:'"BalloonCustom", sans-serif'};
 function notice(text,error=false){$('notice').textContent=text;$('notice').classList.toggle('error',error);}
 function duration(){return Number($('duration').value);}
 function textValue(){return $('text').value;}
 function setRangeFill(el){el.style.setProperty('--fill',((Number(el.value)-Number(el.min))/(Number(el.max)-Number(el.min))*100)+'%');}
 function syncUI(){
+ if(gradientEditors)for(const editor of gradientEditors)editor.refresh();
  for(const name of Object.keys(E.ranges)){const el=$(name);el.value=state[name];if(document.activeElement!==$(name+'-out'))$(name+'-out').value=Math.round(state[name]);setRangeFill(el);}
- for(const name of ['visible','collision','hold','openTop','flowThrough'])$(name).checked=state[name];
+ for(const name of ['verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight'])$(name).checked=state[name];
  for(const name of ['font','layout',...E.colors])$(name).value=state[name];
  $('pause').textContent=paused?'▶ 재생':'Ⅱ 일시정지';$('pause').setAttribute('aria-pressed',String(paused));
  $('timeline-play').textContent=timelinePlaying?'Ⅱ 반복 재생 정지':'▶ 타임라인 반복 재생';
@@ -457,10 +495,10 @@ function configAt(t,base=state,list=keys){return E.interpolate(list,t,base);}
 function stepWorld(targetWorld,target,base,list=keys){while(targetWorld.time+E.STEP<=target+1e-7){const t=targetWorld.time+E.STEP;targetWorld.step(E.STEP,configAt(t,base,list));}}
 function invalidateTimeline(reason){if(keys.length){keys=[];renderKeys();notice(reason+' 기존 키프레임을 지웠어요.');}cursor=0;timelinePlaying=false;}
 for(const name of Object.keys(E.ranges))$(name).oninput=()=>{state[name]=Number($(name).value);edited();};
-for(const name of ['visible','collision','hold','openTop','flowThrough'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
+for(const name of ['verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
 for(const name of ['font',...E.colors])$(name).oninput=()=>{state[name]=$(name).value;edited();updateIndividual();};
 $('flowThrough').onchange=()=>{if(gesture||exporting)return;state.flowThrough=$('flowThrough').checked;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice(state.flowThrough?'아래 화면 밖에서 출발합니다.':'닫힌 공간의 배치로 돌아왔어요.');};
-$('restart-flight').onclick=()=>{if(gesture||exporting)return;state.flowThrough=true;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice('아래에서 다시 출발해요.');};
+$('restart-flight').onclick=()=>{if(gesture||exporting)return;state.flowThrough=true;state.startFilled=false;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice('아래에서 다시 출발해요.');};
 for(const name of ['letterSpacing','lineSpacing'])$(name).oninput=()=>{state[name]=Number($(name).value);initialPositions=null;world.respace(state);edited();};
 $('layout').onchange=()=>{state.layout=$('layout').value;initialPositions=null;world.arrange(state);edited();};
 $('arrange').onclick=()=>{initialPositions=null;world.arrange(state);edited();notice('정렬했어요. 현재 위치를 유지하려면 ‘정렬 유지’를 켜세요.');};
@@ -630,12 +668,30 @@ canvas.addEventListener('keydown',event=>{
 
 function makeRenderer(){
  if(!gl)throw Error('WebGL이 지원되지 않습니다.');
- const vert=`attribute vec3 position;attribute vec2 uv;uniform vec3 center;uniform vec3 angles;uniform vec2 viewport;uniform float radius;uniform float squash;uniform vec3 squashAxis;varying vec2 texUV;varying float facing;
- void main(){vec3 p=position;float c=cos(angles.x),s=sin(angles.x);p=vec3(p.x,c*p.y-s*p.z,s*p.y+c*p.z);c=cos(angles.y);s=sin(angles.y);p=vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);c=cos(angles.z);s=sin(angles.z);p=vec3(c*p.x-s*p.y,s*p.x+c*p.y,p.z);float axial=1.0-squash;float transverse=inversesqrt(axial);vec3 normal=p/transverse+(1.0/axial-1.0/transverse)*dot(p,squashAxis)*squashAxis;facing=normal.z;p=p*transverse+(axial-transverse)*dot(p,squashAxis)*squashAxis;vec3 world=p*radius+center;gl_Position=vec4(world.x/(viewport.x*.5),world.y/(viewport.y*.5),-world.z/1800.0,1.0);texUV=uv;}`;
- const frag=`precision mediump float;uniform sampler2D lettering;uniform vec3 color;uniform vec3 inkColor;uniform vec3 background;uniform float visible;uniform float letteringPass;varying vec2 texUV;varying float facing;void main(){if(letteringPass<.5){if(visible<.5||facing<0.0)discard;gl_FragColor=vec4(color,1.0);}else{if(visible>.5&&facing<0.0)discard;float alpha=texture2D(lettering,texUV).a;if(alpha<.02)discard;gl_FragColor=vec4(inkColor,alpha);}}`;
+ const vert=`attribute vec3 position;attribute vec2 uv;uniform vec3 center;uniform vec3 angles;uniform vec2 viewport;uniform float radius;uniform float squash;uniform vec3 squashAxis;uniform mediump float letteringPass;varying vec2 texUV;varying float facing;varying float bodyHeight;varying vec2 gradientPoint;
+ void main(){if(letteringPass>2.5){texUV=uv;facing=1.0;bodyHeight=uv.y;gradientPoint=uv;gl_Position=vec4(uv*2.0-1.0,0.0,1.0);return;}vec3 p=position;float c=cos(angles.x),s=sin(angles.x);p=vec3(p.x,c*p.y-s*p.z,s*p.y+c*p.z);c=cos(angles.y);s=sin(angles.y);p=vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);c=cos(angles.z);s=sin(angles.z);p=vec3(c*p.x-s*p.y,s*p.x+c*p.y,p.z);float axial=1.0-squash;float transverse=inversesqrt(axial);vec3 normal=p/transverse+(1.0/axial-1.0/transverse)*dot(p,squashAxis)*squashAxis;facing=normal.z;p=p*transverse+(axial-transverse)*dot(p,squashAxis)*squashAxis;vec3 world=p*radius+center;gl_Position=vec4(world.x/(viewport.x*.5),world.y/(viewport.y*.5),-world.z/1800.0,1.0);texUV=uv;bodyHeight=clamp(p.y*.5+.5,0.0,1.0);gradientPoint=p.xy*.5+.5;}`;
+ const frag=`precision mediump float;
+uniform vec4 sphereStops[16];uniform vec4 backgroundStops[16];
+uniform int sphereStopCount;uniform int backgroundStopCount;
+uniform float sphereMode;uniform float backgroundMode;uniform float sphereAngle;uniform float backgroundAngle;
+
+float gradientT(vec2 p,float mode,float angle){
+ if(mode>.5)return clamp(length(p-.5)*2.0,0.0,1.0);
+ vec2 d=vec2(sin(angle),-cos(angle));
+ return clamp(.5+dot(p-.5,d)/max(.001,abs(d.x)+abs(d.y)),0.0,1.0);
+}
+vec3 sphereRamp(float t){
+ vec4 a=sphereStops[0];
+ for(int i=1;i<16;i++){if(i>=sphereStopCount)break;vec4 b=sphereStops[i];if(t<=b.a)return mix(a.rgb,b.rgb,clamp((t-a.a)/max(.00001,b.a-a.a),0.0,1.0));a=b;}return a.rgb;
+}
+vec3 backgroundRamp(float t){
+ vec4 a=backgroundStops[0];
+ for(int i=1;i<16;i++){if(i>=backgroundStopCount)break;vec4 b=backgroundStops[i];if(t<=b.a)return mix(a.rgb,b.rgb,clamp((t-a.a)/max(.00001,b.a-a.a),0.0,1.0));a=b;}return a.rgb;
+}
+uniform sampler2D lettering;uniform float letteringScale;uniform vec3 color;uniform vec3 inkColor;uniform vec3 background;uniform vec3 backgroundEnd;uniform vec3 sphereEnd;uniform float useBackgroundGradient;uniform float useSphereGradient;uniform float visible;uniform mediump float letteringPass;varying vec2 texUV;varying float facing;varying float bodyHeight;varying vec2 gradientPoint;void main(){if(letteringPass>2.5){gl_FragColor=vec4(mix(background,backgroundRamp(gradientT(texUV,backgroundMode,backgroundAngle)),useBackgroundGradient),1.0);return;}if(letteringPass<.5){if(visible<.5||facing<0.0)discard;gl_FragColor=vec4(mix(color,sphereRamp(gradientT(gradientPoint,sphereMode,sphereAngle)),useSphereGradient),1.0);}else{if(visible>.5&&facing<0.0)discard;vec2 letterUV=(texUV-.5)*letteringScale+.5;if(any(lessThan(letterUV,vec2(0.0)))||any(greaterThan(letterUV,vec2(1.0))))discard;float alpha=texture2D(lettering,letterUV).a;if(alpha<.02)discard;gl_FragColor=vec4(inkColor,alpha);}}`;
  function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
  const program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vert));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,frag));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('3D 프로그램을 시작하지 못했습니다.');gl.useProgram(program);
- const uniforms={};for(const n of ['center','angles','viewport','radius','squash','squashAxis','lettering','color','inkColor','background','visible','letteringPass'])uniforms[n]=gl.getUniformLocation(program,n);
+ const uniforms={};for(const n of ['center','angles','viewport','radius','squash','squashAxis','lettering','letteringScale','color','inkColor','background','visible','letteringPass','backgroundEnd','sphereEnd','useBackgroundGradient','useSphereGradient','sphereStops[0]','backgroundStops[0]','sphereStopCount','backgroundStopCount','sphereMode','backgroundMode','sphereAngle','backgroundAngle'])uniforms[n]=gl.getUniformLocation(program,n);
  const points=[],uvs=[],indices=[],nx=64,ny=32;
  for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){const u=i/nx,v=j/ny,lon=(u-.5)*Math.PI*2,lat=(.5-v)*Math.PI;points.push(Math.sin(lon)*Math.cos(lat),Math.sin(lat),Math.cos(lon)*Math.cos(lat));uvs.push(u,v);}
  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i;indices.push(a,a+nx+1,a+1,a+1,a+nx+1,a+nx+2);}
@@ -646,14 +702,29 @@ function makeRenderer(){
  function texture(char,config){if(textures.has(char))return textures.get(char);const c=document.createElement('canvas');c.width=1024;c.height=512;const ctx=c.getContext('2d');ctx.fillStyle='#000';ctx.font=Math.round(config.weight)+' '+Math.round(config.typeSize*4/3)+'px '+fonts[config.font];ctx.textAlign='left';ctx.textBaseline='alphabetic';let metrics=ctx.measureText?.(char);
  if(metrics&&metrics.width>500){ctx.font=Math.round(config.weight)+' '+Math.round(config.typeSize*4/3*500/metrics.width)+'px '+fonts[config.font];metrics=ctx.measureText(char);}
  if(metrics&&Number.isFinite(metrics.actualBoundingBoxLeft)&&Number.isFinite(metrics.actualBoundingBoxAscent)){ctx.fillText(char,512+(metrics.actualBoundingBoxLeft-metrics.actualBoundingBoxRight)/2,256+(metrics.actualBoundingBoxAscent-metrics.actualBoundingBoxDescent)/2);}else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(char,512,256,500);} const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);textures.set(char,t);return t;}
- function draw(sim,config){
+ function draw(sim,config,transparent=false){
   const nextSignature=[Math.round(config.typeSize*4/3),Math.round(config.weight),config.font].join('|');if(nextSignature!==signature){clearTextures();signature=nextSignature;}
-  gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...bg,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,sim.particles.length);
-  for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){const turn=s.turn||0,profile=E.rotationProfile(s.index);gl.uniform3f(uniforms.center,s.x,s.y,s.z);gl.uniform1f(uniforms.radius,r);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.angles,Math.sin(turn)*profile.tilt,turn-.42*Math.sin(2*turn),Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.index]||config.color));gl.uniform3f(uniforms.inkColor,...E.rgb(inkOverrides[s.index]||config.ink));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
+  gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...(transparent?[0,0,0]:bg),transparent?0:1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,(sim.sourceCount||sim.particles.length));gl.uniform1f(uniforms.letteringScale,r/(config.typeSizeReferenceRadius||10.4));
+  for(const kind of ['sphere','background']){
+   const stops=gradientStops(config,kind),data=new Float32Array(64);
+   stops.forEach((stop,i)=>{data.set(E.rgb(stop.color),i*4);data[i*4+3]=stop.position;});
+   gl.uniform4fv(uniforms[kind+'Stops[0]'],data);gl.uniform1i(uniforms[kind+'StopCount'],stops.length);
+   gl.uniform1f(uniforms[kind+'Mode'],config[kind+'GradientMode']==='radial'?1:0);
+   gl.uniform1f(uniforms[kind+'Angle'],(config[kind+'GradientAngle']||0)*Math.PI/180);
+  }
+  gl.uniform3f(uniforms.backgroundEnd,...E.rgb(config.backgroundColorEnd));
+  gl.uniform3f(uniforms.sphereEnd,...E.rgb(config.sphereColorEnd));
+  gl.uniform1f(uniforms.useBackgroundGradient,config.backgroundGradient?1:0);
+  gl.uniform1f(uniforms.useSphereGradient,config.sphereGradient?1:0);
+  gl.bindTexture(gl.TEXTURE_2D,texture(' ',config));
+  gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.depthMask(false);
+  if(!transparent){gl.uniform1f(uniforms.letteringPass,3);gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);}
+  gl.depthMask(true);gl.enable(gl.DEPTH_TEST);
+  for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){const turn=s.turn||0,profile=E.rotationProfile(s.index);gl.uniform3f(uniforms.center,s.x,s.y,s.z);gl.uniform1f(uniforms.radius,r);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.angles,Math.sin(turn)*profile.tilt,turn-.42*Math.sin(2*turn),Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.sourceIndex??s.index]||config.color));gl.uniform3f(uniforms.inkColor,...E.rgb(inkOverrides[s.sourceIndex??s.index]||config.ink));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
    // A visible body hides rear lettering; a hidden body reveals its mirrored back side.
    gl.uniform1f(uniforms.letteringPass,0);
    if(config.visible)gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
-   gl.uniform1f(uniforms.letteringPass,1);gl.depthMask(false);gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+   gl.uniform1f(uniforms.letteringPass,1);gl.depthMask(false);gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
    gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
    gl.disable(gl.BLEND);gl.depthMask(true);gl.enable(gl.DEPTH_TEST);}
  }
@@ -678,9 +749,11 @@ const format=X.videoFormat();$('record').textContent=format?(format.extension.to
 $('export-note').textContent=(format?format.extension==='mp4'?'이 브라우저는 MP4 녹화를 지원해요.':'이 브라우저에서는 WebM 영상으로 저장돼요.':'이 브라우저는 영상 녹화를 지원하지 않아요. PNG 저장을 이용해주세요.')+' 영상은 실시간 녹화, PNG는 정확한 프레임 간격으로 저장해요. PNG는 최대 600프레임.';
 function setBusy(value){exporting=value;document.body.classList.toggle('busy',value);$('cancel-export').hidden=!value;$('progress').hidden=!value;for(const el of document.querySelectorAll('button,input,select,textarea')){if(value){el.dataset.wasDisabled=String(el.disabled);if(el.id!=='cancel-export')el.disabled=true;}else if(el.dataset.wasDisabled!==undefined){el.disabled=el.dataset.wasDisabled==='true';delete el.dataset.wasDisabled;}}syncUI();}
 $('cancel-export').onclick=()=>exportController?.abort();
-$('snapshot').onclick=async()=>{if(!renderer)return;try{if(state.font==='pretendard')await ensurePretendard();renderer.draw(world,state);X.download(await X.png(canvas),'balloon-frame.png');notice('현재 화면을 PNG로 저장했어요.');}catch(e){notice(e.message,true);}};
+$('snapshot').onclick=async()=>{if(!renderer||exporting||gesture)return;const transparent=$('transparent-export').checked;seekToken++;seeking=false;setBusy(true);try{if(state.font==='pretendard')await ensurePretendard();await document.fonts.ready;renderer.draw(world,state,transparent);X.download(await X.png(canvas),'balloon-frame'+(transparent?'-transparent':'')+'.png');notice(transparent?'배경이 투명한 PNG를 저장했어요.':'현재 화면을 PNG로 저장했어요.');}catch(e){notice(e.message,true);}finally{setBusy(false);last=performance.now();renderer.draw(world,state);}};
+
 async function exportAnimation(kind){
  if(fontBusy){notice('폰트 연결이 끝난 뒤 저장해주세요.',true);return;}if(!renderer||exporting||gesture)return;
+ const transparent=kind==='png'&&$('transparent-export').checked;
  const fps=Number($('fps').value),length=duration(),total=Math.round(length*fps);
  if(kind==='png'&&total>600){notice('PNG는 한 번에 최대 600프레임까지 저장해요. 길이나 fps를 줄여주세요.',true);return;}
  const saved={config:{...state},world:world.snapshot(),paused,cursor,timelinePlaying};const base={...state},list=keys.map(k=>({time:k.time,config:{...k.config}}));const sim=createWorld(configAt(0,base,list));
@@ -692,9 +765,9 @@ async function exportAnimation(kind){
   if(kind==='png'){
    const zip=new X.ZipWriter();
    for(let i=0;i<total;i++){
-    if(signal.aborted)throw new DOMException('저장을 취소했어요.','AbortError');const t=i/fps;stepWorld(sim,t,base,list);renderer.draw(sim,configAt(t,base,list));await zip.add('frame_'+String(i).padStart(5,'0')+'.png',await X.png(canvas));$('progress').value=(i+1)/total;notice('PNG 프레임 '+(i+1)+' / '+total+' 저장 중');if(i%3===0)await new Promise(r=>setTimeout(r,0));
+    if(signal.aborted)throw new DOMException('저장을 취소했어요.','AbortError');const t=i/fps;stepWorld(sim,t,base,list);renderer.draw(sim,configAt(t,base,list),transparent);await zip.add('frame_'+String(i).padStart(5,'0')+'.png',await X.png(canvas));$('progress').value=(i+1)/total;notice('PNG 프레임 '+(i+1)+' / '+total+' 저장 중');if(i%3===0)await new Promise(r=>setTimeout(r,0));
    }
-   if(signal.aborted)throw new DOMException('저장을 취소했어요.','AbortError');await zip.add('sequence.json',new Blob([JSON.stringify({fps,frameCount:total,duration:length,width:canvas.width,height:canvas.height,startFrame:0,timeOfFrame:'index / fps'},null,2)],{type:'application/json'}));X.download(zip.finish(),'balloon-frames-'+fps+'fps.zip');notice(total+'개의 PNG 프레임을 ZIP으로 저장했어요.');
+   if(signal.aborted)throw new DOMException('저장을 취소했어요.','AbortError');await zip.add('sequence.json',new Blob([JSON.stringify({fps,frameCount:total,duration:length,width:canvas.width,height:canvas.height,startFrame:0,timeOfFrame:'index / fps',transparentBackground:transparent},null,2)],{type:'application/json'}));X.download(zip.finish(),'balloon-frames-'+fps+'fps.zip');notice(total+'개의 PNG 프레임을 ZIP으로 저장했어요.');
   }else{
    notice('0초부터 '+length+'초 동안 녹화해요. 이 창을 열어두세요.');
    const blob=await X.record(canvas,{fps,duration:length,format,signal,onFrame(t){stepWorld(sim,t,base,list);renderer.draw(sim,configAt(t,base,list));},onProgress(p){$('progress').value=p;notice('영상 녹화 중 · '+(p*length).toFixed(1)+' / '+length+'초');}});
@@ -753,5 +826,60 @@ $('toggle-left-panel').onclick=()=>{workspaceView.left=!workspaceView.left;syncW
 $('toggle-right-panel').onclick=()=>{workspaceView.right=!workspaceView.right;syncWorkspaceView();};
 $('toggle-theme').onchange=()=>{workspaceView.night=$('toggle-theme').checked;syncWorkspaceView();};
 syncWorkspaceView();
+
+function gradientStops(config,kind){
+ const key=kind+'Stops';
+ return config[key]||[{position:0,color:kind==='sphere'?config.color:config.background},{position:1,color:kind==='sphere'?config.sphereColorEnd:config.backgroundColorEnd}];
+}
+
+var gradientEditors=[];
+for(const kind of ['sphere','background']){
+ const bar=$(kind+'-gradient-bar'),picker=$(kind+'-stop-color'),position=$(kind+'-stop-position'),mode=$(kind+'-gradient-mode'),angle=$(kind+'-gradient-angle');
+ const editor={kind,selected:0,refresh};gradientEditors.push(editor);
+ function stops(){return gradientStops(state,kind).map(s=>({...s}));}
+ function commit(list){state[kind+'Stops']=list;state[kind+'Gradient']=true;edited();}
+ function refresh(){
+  const list=stops();editor.selected=Math.min(editor.selected,list.length-1);
+  bar.style.background='linear-gradient(to right,'+list.map(s=>s.color+' '+s.position*100+'%').join(',')+')';
+  bar.replaceChildren();
+  list.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.className='gradient-stop';b.style.left=s.position*100+'%';b.style.background=s.color;b.setAttribute('aria-label','색상 포인트 '+(i+1));b.setAttribute('aria-pressed',String(editor.selected===i));b.dataset.stop=String(i);
+   b.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();editor.selected=i;position.value=Math.round(Math.max(0,Math.min(1,s.position+(e.key==='ArrowRight'?.01:-.01)))*100);position.onchange();}};bar.append(b);
+  });
+  if(document.activeElement!==picker)picker.value=list[editor.selected].color;
+  if(document.activeElement!==position)position.value=Math.round(list[editor.selected].position*100);
+  mode.value=state[kind+'GradientMode'];if(document.activeElement!==angle)angle.value=state[kind+'GradientAngle'];
+  $(kind+'-stop-remove').disabled=list.length<=2;$(kind+'-stop-add').disabled=list.length>=16;
+ }
+ function add(at){const list=stops();if(list.length>=16)return;
+  list.push({position:at,color:list[editor.selected].color});const point=list[list.length-1];list.sort((a,b)=>a.position-b.position);editor.selected=list.indexOf(point);commit(list);
+ }
+ let dragging=false;
+ const point=e=>Math.max(0,Math.min(1,(e.clientX-bar.getBoundingClientRect().left)/bar.getBoundingClientRect().width));
+ bar.onpointerdown=e=>{if(exporting)return;e.preventDefault();const stop=e.target.closest('[data-stop]');if(stop)editor.selected=Number(stop.dataset.stop);else add(point(e));dragging=true;bar.setPointerCapture(e.pointerId);refresh();};
+ bar.onpointermove=e=>{if(!dragging)return;const list=stops(),item=list[editor.selected];item.position=point(e);list.sort((a,b)=>a.position-b.position);editor.selected=list.indexOf(item);commit(list);};
+ bar.onpointerup=bar.onpointercancel=()=>{dragging=false;};
+ picker.oninput=picker.onchange=()=>{const list=stops();list[editor.selected].color=picker.value;commit(list);};
+ position.onchange=()=>{const val=Number(position.value);if(!Number.isFinite(val))return refresh();const list=stops(),item=list[editor.selected];item.position=Math.max(0,Math.min(100,val))/100;list.sort((a,b)=>a.position-b.position);editor.selected=list.indexOf(item);commit(list);};
+ $(kind+'-stop-add').onclick=()=>add(.5);
+ $(kind+'-stop-remove').onclick=()=>{const list=stops();if(list.length<=2)return;list.splice(editor.selected,1);editor.selected=Math.max(0,editor.selected-1);commit(list);};
+ mode.onchange=()=>{state[kind+'GradientMode']=mode.value;state[kind+'Gradient']=true;edited();};
+ angle.onchange=()=>{const v=Number(angle.value);if(Number.isFinite(v)){state[kind+'GradientAngle']=Math.max(0,Math.min(360,v));edited();}};
+ $(kind+'-gradient-reset').onclick=()=>{state[kind+'Stops']=null;edited();};
+ refresh();
+}
+
+$('lockTypeSize').onchange=()=>{
+ const enabled=$('lockTypeSize').checked;
+ if(enabled)state.typeSizeReferenceRadius=E.radius(state,width,height,world.particles.length);
+ state.lockTypeSize=enabled;edited();
+};
+
+$('random-start').onclick=()=>{if(exporting||gesture)return;state.startSeed=1+Math.floor(Math.random()*2147483000);for(const k of keys)k.config.startSeed=state.startSeed;initialPositions=null;selected=-1;resetWorld();edited();notice('원래 배열 주변에서 시작 위치를 살짝 섞었어요.');};
+
+$('startSpread').oninput=()=>{if(exporting||gesture)return;state.startSpread=Number($('startSpread').value);if(!state.startSeed)state.startSeed=1+Math.floor(Math.random()*2147483000);for(const k of keys){k.config.startSpread=state.startSpread;k.config.startSeed=state.startSeed;}initialPositions=null;selected=-1;resetWorld();edited();};
+
+$('repeatFlight').onchange=()=>{if(exporting||gesture)return;state.repeatFlight=$('repeatFlight').checked;for(const k of keys)k.config.repeatFlight=state.repeatFlight;initialPositions=null;resetWorld();if(state.repeatFlight)paused=false;edited();notice(state.repeatFlight?'다음 풍선이 기다리지 않고 연속해서 들어와요.':'연속 올라오기를 껐어요.');};
+
+$('start-filled').onclick=()=>{if(exporting||gesture)return;if(!E.letters(textValue()).length){notice('먼저 글자를 입력해주세요.');return;}state.startFilled=true;state.repeatFlight=true;for(const k of keys){k.config.startFilled=true;k.config.repeatFlight=true;}initialPositions=null;selected=-1;cursor=0;resetWorld();paused=false;edited();notice('화면 안에 풍선을 채워 시작해요. 같은 설정으로 계속 이어서 올라옵니다.');};
 </script>
 </body></html>

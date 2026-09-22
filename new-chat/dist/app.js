@@ -9,7 +9,7 @@ let googleFont=null,googleLink=null,fontBusy=false;
 let exportController=null;
 let initialPositions=null,toolMode='move',selected=-1,gesture=null;
 const canvas=$('canvas');
-const gl=canvas.getContext('webgl',{alpha:false,antialias:true,preserveDrawingBuffer:true});
+const gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:true,antialias:true,preserveDrawingBuffer:true});
 const fonts={pretendard:'"Pretendard Variable", sans-serif',gothic:'"Apple SD Gothic Neo", "Malgun Gothic", sans-serif',serif:'"AppleMyungjo", "Batang", serif',rounded:'"Arial Rounded MT Bold", "NanumSquareRound", "Apple SD Gothic Neo", sans-serif',mono:'"D2Coding", "SFMono-Regular", monospace',brush:'"GungSeo", "Gungsuh", serif',custom:'"BalloonCustom", sans-serif'};
 function notice(text,error=false){$('notice').textContent=text;$('notice').classList.toggle('error',error);}
 function duration(){return Number($('duration').value);}
@@ -18,7 +18,7 @@ function setRangeFill(el){el.style.setProperty('--fill',((Number(el.value)-Numbe
 function syncUI(){
  if(gradientEditors)for(const editor of gradientEditors)editor.refresh();
  for(const name of Object.keys(E.ranges)){const el=$(name);el.value=state[name];if(document.activeElement!==$(name+'-out'))$(name+'-out').value=Math.round(state[name]);setRangeFill(el);}
- for(const name of ['visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).checked=state[name];
+ for(const name of ['verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight'])$(name).checked=state[name];
  for(const name of ['font','layout',...E.colors])$(name).value=state[name];
  $('pause').textContent=paused?'▶ 재생':'Ⅱ 일시정지';$('pause').setAttribute('aria-pressed',String(paused));
  $('timeline-play').textContent=timelinePlaying?'Ⅱ 반복 재생 정지':'▶ 타임라인 반복 재생';
@@ -44,10 +44,10 @@ function configAt(t,base=state,list=keys){return E.interpolate(list,t,base);}
 function stepWorld(targetWorld,target,base,list=keys){while(targetWorld.time+E.STEP<=target+1e-7){const t=targetWorld.time+E.STEP;targetWorld.step(E.STEP,configAt(t,base,list));}}
 function invalidateTimeline(reason){if(keys.length){keys=[];renderKeys();notice(reason+' 기존 키프레임을 지웠어요.');}cursor=0;timelinePlaying=false;}
 for(const name of Object.keys(E.ranges))$(name).oninput=()=>{state[name]=Number($(name).value);edited();};
-for(const name of ['visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
+for(const name of ['verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
 for(const name of ['font',...E.colors])$(name).oninput=()=>{state[name]=$(name).value;edited();updateIndividual();};
 $('flowThrough').onchange=()=>{if(gesture||exporting)return;state.flowThrough=$('flowThrough').checked;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice(state.flowThrough?'아래 화면 밖에서 출발합니다.':'닫힌 공간의 배치로 돌아왔어요.');};
-$('restart-flight').onclick=()=>{if(gesture||exporting)return;state.flowThrough=true;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice('아래에서 다시 출발해요.');};
+$('restart-flight').onclick=()=>{if(gesture||exporting)return;state.flowThrough=true;state.startFilled=false;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice('아래에서 다시 출발해요.');};
 for(const name of ['letterSpacing','lineSpacing'])$(name).oninput=()=>{state[name]=Number($(name).value);initialPositions=null;world.respace(state);edited();};
 $('layout').onchange=()=>{state.layout=$('layout').value;initialPositions=null;world.arrange(state);edited();};
 $('arrange').onclick=()=>{initialPositions=null;world.arrange(state);edited();notice('정렬했어요. 현재 위치를 유지하려면 ‘정렬 유지’를 켜세요.');};
@@ -251,9 +251,9 @@ uniform sampler2D lettering;uniform float letteringScale;uniform vec3 color;unif
  function texture(char,config){if(textures.has(char))return textures.get(char);const c=document.createElement('canvas');c.width=1024;c.height=512;const ctx=c.getContext('2d');ctx.fillStyle='#000';ctx.font=Math.round(config.weight)+' '+Math.round(config.typeSize*4/3)+'px '+fonts[config.font];ctx.textAlign='left';ctx.textBaseline='alphabetic';let metrics=ctx.measureText?.(char);
  if(metrics&&metrics.width>500){ctx.font=Math.round(config.weight)+' '+Math.round(config.typeSize*4/3*500/metrics.width)+'px '+fonts[config.font];metrics=ctx.measureText(char);}
  if(metrics&&Number.isFinite(metrics.actualBoundingBoxLeft)&&Number.isFinite(metrics.actualBoundingBoxAscent)){ctx.fillText(char,512+(metrics.actualBoundingBoxLeft-metrics.actualBoundingBoxRight)/2,256+(metrics.actualBoundingBoxAscent-metrics.actualBoundingBoxDescent)/2);}else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(char,512,256,500);} const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);textures.set(char,t);return t;}
- function draw(sim,config){
+ function draw(sim,config,transparent=false){
   const nextSignature=[Math.round(config.typeSize*4/3),Math.round(config.weight),config.font].join('|');if(nextSignature!==signature){clearTextures();signature=nextSignature;}
-  gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...bg,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,sim.particles.length);gl.uniform1f(uniforms.letteringScale,config.lockTypeSize?r/config.typeSizeReferenceRadius:1);
+  gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...(transparent?[0,0,0]:bg),transparent?0:1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,(sim.sourceCount||sim.particles.length));gl.uniform1f(uniforms.letteringScale,r/(config.typeSizeReferenceRadius||10.4));
   for(const kind of ['sphere','background']){
    const stops=gradientStops(config,kind),data=new Float32Array(64);
    stops.forEach((stop,i)=>{data.set(E.rgb(stop.color),i*4);data[i*4+3]=stop.position;});
@@ -267,13 +267,13 @@ uniform sampler2D lettering;uniform float letteringScale;uniform vec3 color;unif
   gl.uniform1f(uniforms.useSphereGradient,config.sphereGradient?1:0);
   gl.bindTexture(gl.TEXTURE_2D,texture(' ',config));
   gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.depthMask(false);
-  gl.uniform1f(uniforms.letteringPass,3);gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
+  if(!transparent){gl.uniform1f(uniforms.letteringPass,3);gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);}
   gl.depthMask(true);gl.enable(gl.DEPTH_TEST);
-  for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){const turn=s.turn||0,profile=E.rotationProfile(s.index);gl.uniform3f(uniforms.center,s.x,s.y,s.z);gl.uniform1f(uniforms.radius,r);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.angles,Math.sin(turn)*profile.tilt,turn-.42*Math.sin(2*turn),Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.index]||config.color));gl.uniform3f(uniforms.inkColor,...E.rgb(inkOverrides[s.index]||config.ink));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
+  for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){const turn=s.turn||0,profile=E.rotationProfile(s.index);gl.uniform3f(uniforms.center,s.x,s.y,s.z);gl.uniform1f(uniforms.radius,r);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.angles,Math.sin(turn)*profile.tilt,turn-.42*Math.sin(2*turn),Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.sourceIndex??s.index]||config.color));gl.uniform3f(uniforms.inkColor,...E.rgb(inkOverrides[s.sourceIndex??s.index]||config.ink));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
    // A visible body hides rear lettering; a hidden body reveals its mirrored back side.
    gl.uniform1f(uniforms.letteringPass,0);
    if(config.visible)gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
-   gl.uniform1f(uniforms.letteringPass,1);gl.depthMask(false);gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+   gl.uniform1f(uniforms.letteringPass,1);gl.depthMask(false);gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
    gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
    gl.disable(gl.BLEND);gl.depthMask(true);gl.enable(gl.DEPTH_TEST);}
  }
@@ -298,9 +298,11 @@ const format=X.videoFormat();$('record').textContent=format?(format.extension.to
 $('export-note').textContent=(format?format.extension==='mp4'?'이 브라우저는 MP4 녹화를 지원해요.':'이 브라우저에서는 WebM 영상으로 저장돼요.':'이 브라우저는 영상 녹화를 지원하지 않아요. PNG 저장을 이용해주세요.')+' 영상은 실시간 녹화, PNG는 정확한 프레임 간격으로 저장해요. PNG는 최대 600프레임.';
 function setBusy(value){exporting=value;document.body.classList.toggle('busy',value);$('cancel-export').hidden=!value;$('progress').hidden=!value;for(const el of document.querySelectorAll('button,input,select,textarea')){if(value){el.dataset.wasDisabled=String(el.disabled);if(el.id!=='cancel-export')el.disabled=true;}else if(el.dataset.wasDisabled!==undefined){el.disabled=el.dataset.wasDisabled==='true';delete el.dataset.wasDisabled;}}syncUI();}
 $('cancel-export').onclick=()=>exportController?.abort();
-$('snapshot').onclick=async()=>{if(!renderer)return;try{if(state.font==='pretendard')await ensurePretendard();renderer.draw(world,state);X.download(await X.png(canvas),'balloon-frame.png');notice('현재 화면을 PNG로 저장했어요.');}catch(e){notice(e.message,true);}};
+$('snapshot').onclick=async()=>{if(!renderer||exporting||gesture)return;const transparent=$('transparent-export').checked;seekToken++;seeking=false;setBusy(true);try{if(state.font==='pretendard')await ensurePretendard();await document.fonts.ready;renderer.draw(world,state,transparent);X.download(await X.png(canvas),'balloon-frame'+(transparent?'-transparent':'')+'.png');notice(transparent?'배경이 투명한 PNG를 저장했어요.':'현재 화면을 PNG로 저장했어요.');}catch(e){notice(e.message,true);}finally{setBusy(false);last=performance.now();renderer.draw(world,state);}};
+
 async function exportAnimation(kind){
  if(fontBusy){notice('폰트 연결이 끝난 뒤 저장해주세요.',true);return;}if(!renderer||exporting||gesture)return;
+ const transparent=kind==='png'&&$('transparent-export').checked;
  const fps=Number($('fps').value),length=duration(),total=Math.round(length*fps);
  if(kind==='png'&&total>600){notice('PNG는 한 번에 최대 600프레임까지 저장해요. 길이나 fps를 줄여주세요.',true);return;}
  const saved={config:{...state},world:world.snapshot(),paused,cursor,timelinePlaying};const base={...state},list=keys.map(k=>({time:k.time,config:{...k.config}}));const sim=createWorld(configAt(0,base,list));
@@ -312,9 +314,9 @@ async function exportAnimation(kind){
   if(kind==='png'){
    const zip=new X.ZipWriter();
    for(let i=0;i<total;i++){
-    if(signal.aborted)throw new DOMException('저장을 취소했어요.','AbortError');const t=i/fps;stepWorld(sim,t,base,list);renderer.draw(sim,configAt(t,base,list));await zip.add('frame_'+String(i).padStart(5,'0')+'.png',await X.png(canvas));$('progress').value=(i+1)/total;notice('PNG 프레임 '+(i+1)+' / '+total+' 저장 중');if(i%3===0)await new Promise(r=>setTimeout(r,0));
+    if(signal.aborted)throw new DOMException('저장을 취소했어요.','AbortError');const t=i/fps;stepWorld(sim,t,base,list);renderer.draw(sim,configAt(t,base,list),transparent);await zip.add('frame_'+String(i).padStart(5,'0')+'.png',await X.png(canvas));$('progress').value=(i+1)/total;notice('PNG 프레임 '+(i+1)+' / '+total+' 저장 중');if(i%3===0)await new Promise(r=>setTimeout(r,0));
    }
-   if(signal.aborted)throw new DOMException('저장을 취소했어요.','AbortError');await zip.add('sequence.json',new Blob([JSON.stringify({fps,frameCount:total,duration:length,width:canvas.width,height:canvas.height,startFrame:0,timeOfFrame:'index / fps'},null,2)],{type:'application/json'}));X.download(zip.finish(),'balloon-frames-'+fps+'fps.zip');notice(total+'개의 PNG 프레임을 ZIP으로 저장했어요.');
+   if(signal.aborted)throw new DOMException('저장을 취소했어요.','AbortError');await zip.add('sequence.json',new Blob([JSON.stringify({fps,frameCount:total,duration:length,width:canvas.width,height:canvas.height,startFrame:0,timeOfFrame:'index / fps',transparentBackground:transparent},null,2)],{type:'application/json'}));X.download(zip.finish(),'balloon-frames-'+fps+'fps.zip');notice(total+'개의 PNG 프레임을 ZIP으로 저장했어요.');
   }else{
    notice('0초부터 '+length+'초 동안 녹화해요. 이 창을 열어두세요.');
    const blob=await X.record(canvas,{fps,duration:length,format,signal,onFrame(t){stepWorld(sim,t,base,list);renderer.draw(sim,configAt(t,base,list));},onProgress(p){$('progress').value=p;notice('영상 녹화 중 · '+(p*length).toFixed(1)+' / '+length+'초');}});
@@ -420,3 +422,11 @@ $('lockTypeSize').onchange=()=>{
  if(enabled)state.typeSizeReferenceRadius=E.radius(state,width,height,world.particles.length);
  state.lockTypeSize=enabled;edited();
 };
+
+$('random-start').onclick=()=>{if(exporting||gesture)return;state.startSeed=1+Math.floor(Math.random()*2147483000);for(const k of keys)k.config.startSeed=state.startSeed;initialPositions=null;selected=-1;resetWorld();edited();notice('원래 배열 주변에서 시작 위치를 살짝 섞었어요.');};
+
+$('startSpread').oninput=()=>{if(exporting||gesture)return;state.startSpread=Number($('startSpread').value);if(!state.startSeed)state.startSeed=1+Math.floor(Math.random()*2147483000);for(const k of keys){k.config.startSpread=state.startSpread;k.config.startSeed=state.startSeed;}initialPositions=null;selected=-1;resetWorld();edited();};
+
+$('repeatFlight').onchange=()=>{if(exporting||gesture)return;state.repeatFlight=$('repeatFlight').checked;for(const k of keys)k.config.repeatFlight=state.repeatFlight;initialPositions=null;resetWorld();if(state.repeatFlight)paused=false;edited();notice(state.repeatFlight?'다음 풍선이 기다리지 않고 연속해서 들어와요.':'연속 올라오기를 껐어요.');};
+
+$('start-filled').onclick=()=>{if(exporting||gesture)return;if(!E.letters(textValue()).length){notice('먼저 글자를 입력해주세요.');return;}state.startFilled=true;state.repeatFlight=true;for(const k of keys){k.config.startFilled=true;k.config.repeatFlight=true;}initialPositions=null;selected=-1;cursor=0;resetWorld();paused=false;edited();notice('화면 안에 풍선을 채워 시작해요. 같은 설정으로 계속 이어서 올라옵니다.');};

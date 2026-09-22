@@ -2,14 +2,15 @@
 (function(root){
 'use strict';
 const STEP=1/120;
-const defaults={lockTypeSize:false,typeSizeReferenceRadius:10.4,sphereStops:null,backgroundStops:null,sphereGradientMode:"linear",backgroundGradientMode:"linear",sphereGradientAngle:0,backgroundGradientAngle:0,sphereGradient:false,backgroundGradient:false,sphereColorEnd:"#3d9fff",backgroundColorEnd:"#792cff",float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
-const ranges={letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[1,600],typeSize:[1,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
+const defaults={verticalBob:true,verticalRange:100,startFilled:false,repeatFlight:false,startSpread:5,startSeed:0,lockTypeSize:true,typeSizeReferenceRadius:10.4,sphereStops:null,backgroundStops:null,sphereGradientMode:"linear",backgroundGradientMode:"linear",sphereGradientAngle:0,backgroundGradientAngle:0,sphereGradient:false,backgroundGradient:false,sphereColorEnd:"#3d9fff",backgroundColorEnd:"#792cff",float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
+const ranges={verticalRange:[0,200],startSpread:[0,100],letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[1,600],typeSize:[1,220],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
 const colors=['color','ink','background','sphereColorEnd','backgroundColorEnd'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function validateConfig(input){
  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('설정 형식을 확인해주세요.');
  const out={...defaults};
  for(const [key,value]of Object.entries(input)){
+  if(key==='startSeed'){if(!Number.isInteger(value)||value<0||value>2147483647)throw Error('시작 배치 값을 확인해주세요.');out[key]=value;continue;}
   if(key==='accent')continue; // Older saved projects remain readable.
   if(!Object.prototype.hasOwnProperty.call(defaults,key))throw Error('알 수 없는 설정입니다: '+key);
   if(key==='typeSizeReferenceRadius'){if(typeof value!=='number'||!Number.isFinite(value)||value<=0||value>10000)throw Error('글자 크기 기준을 확인해주세요.');
@@ -19,7 +20,7 @@ function validateConfig(input){
   }else if(key.endsWith('GradientAngle')){if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>360)throw Error('그라디언트 각도를 확인해주세요.');
   }else if(ranges[key]){const [a,b]=ranges[key];if(typeof value!=='number'||!Number.isFinite(value)||value<a||value>b)throw Error('설정 범위를 확인해주세요: '+key);}
   else if(colors.includes(key)){if(typeof value!=='string'||!/^#[0-9a-f]{6}$/i.test(value))throw Error('색상 형식을 확인해주세요.');}
-  else if(['visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
+  else if(['verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight','startFilled'].includes(key)){if(typeof value!=='boolean')throw Error('켜기/끄기 설정을 확인해주세요.');}
   else if(key==='layout'&&!['text','row','column','grid','circle','diagonal','zigzag','rings'].includes(value))throw Error('정렬 방식을 확인해주세요.');
   else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google','pretendard'].includes(value))throw Error('폰트를 확인해주세요.');
   out[key]=value;
@@ -43,7 +44,7 @@ function interpolate(keys,t,fallback){
  const out={...a.config};
  for(const key of Object.keys(ranges))out[key]=a.config[key]+(b.config[key]-a.config[key])*f;
  for(const key of colors)out[key]=mixColor(a.config[key],b.config[key],f);
- if(t>=b.time-1e-8)for(const key of ['font','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','layout'])out[key]=b.config[key];
+ if(t>=b.time-1e-8)for(const key of ['font','verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight','startFilled','layout'])out[key]=b.config[key];
  return out;
 }
 function radius(config,w,h,n){
@@ -53,13 +54,13 @@ function radius(config,w,h,n){
 }
 // Orthographic hit testing uses the front surface depth, not array order.
 function hitTest(world,config,x,y){
- const r=radius(config,world.width,world.height,world.particles.length);let hit=-1,front=-Infinity;
+ const r=radius(config,world.width,world.height,(world.sourceCount||world.particles.length));let hit=-1,front=-Infinity;
  for(const p of world.particles){const d2=(p.x-x)**2+(p.y-y)**2;if(d2>r*r)continue;const z=p.z+Math.sqrt(r*r-d2);if(z>front){front=z;hit=p.index;}}
  return hit;
 }
 function moveParticle(world,config,index,x,y){
- const p=world.particles[index];if(!p)return;const r=radius(config,world.width,world.height,world.particles.length);
- const bx=Math.max(0,world.width/2-r-24),by=Math.max(0,world.height/2-r-24);
+ const p=world.particles[index];if(!p)return;const r=radius(config,world.width,world.height,(world.sourceCount||world.particles.length));
+ const bx=Math.max(0,world.width/2-r-24+(world.spacingOverflowX||0)),by=Math.max(0,world.height/2-r-24+(world.spacingOverflowY||0));
  p.x=clamp(x,-bx,bx);p.y=clamp(y,-by,by);p.tx=p.x;p.ty=p.y;p.vx=p.vy=p.vz=0;
  if(Number.isInteger(p.anchor)&&world.particles[p.anchor]){const root=world.particles[p.anchor];p.offsetX=p.x-root.x;p.offsetY=p.y-root.y;p.offsetZ=p.z-root.z;}
 }
@@ -86,6 +87,7 @@ function balloonImpact(p,nx,ny,nz,speed,softness){
 class World{
  constructor(text,width,height,config){this.width=width;this.height=height;this.time=0;this.motionTime=0;this.rotationTimeline=0;this.layout=config.layout;this.particles=letters(text).map(s=>({...s,x:0,y:0,z:0,vx:0,vy:0,vz:0,spin:0}));this.arrange(config);}
  arrange(config){
+  this.particles=this.particles.filter(p=>p.sourceIndex===undefined);this.sourceCount=this.particles.length;this.repeatActive=!!config.repeatFlight;this.holdActive=!!config.hold;
   const ps=this.particles,n=ps.length,w=this.width,h=this.height,r=radius(config,w,h,n),margin=r+30;this.layout=config.layout;
   let targets=[];
   if(['diagonal','zigzag','rings'].includes(config.layout)){
@@ -114,26 +116,42 @@ class World{
     rows.set(row,Math.max(rows.get(row)||0,col+1));return {row,col};
    });
    const rowCount=Math.max(1,...Array.from(rows.keys(),r=>r+1));
-   const stepX=Math.min(r*2.35+config.letterSpacing,(w-margin*2)/Math.max(1,...Array.from(rows.values(),v=>v-1))),stepY=Math.min(r*2.35+config.lineSpacing,(h-margin*2)/Math.max(1,rowCount-1));
+   const stepX=Math.max(0,Math.min(r*2.35,(w-margin*2)/Math.max(1,...Array.from(rows.values(),v=>v-1))))+config.letterSpacing,stepY=Math.max(0,Math.min(r*2.35,(h-margin*2)/Math.max(1,rowCount-1)))+config.lineSpacing;
    targets=targets.map(p=>({x:(p.col-(rows.get(p.row)-1)/2)*stepX,y:((rowCount-1)/2-p.row)*stepY}));
   }
   if(['circle','rings','diagonal','zigzag'].includes(config.layout))targets=targets.map(p=>({x:p.x*(1+config.letterSpacing/(r*2.35)),y:p.y*(1+config.lineSpacing/(r*2.35))}));
+  this.spacingOverflowX=Math.max(0,...targets.map(p=>Math.abs(p.x)+r+24-w/2));
+  this.spacingOverflowY=Math.max(0,...targets.map(p=>Math.abs(p.y)+r+24-h/2));
+  if(config.startSeed){const spread=Math.min(w,h)*.5*(config.startSpread??5)/100;targets=targets.map((p,i)=>({x:p.x+(rotationRandom(i,config.startSeed)*2-1)*spread,y:p.y+(rotationRandom(i,config.startSeed+719)*2-1)*spread}));this.spacingOverflowX+=spread;this.spacingOverflowY+=spread;}
   this.letterSpacing=config.letterSpacing;this.lineSpacing=config.lineSpacing;
   ps.forEach((s,i)=>{s.pinned=false;delete s.anchor;s.x=targets[i].x;s.y=targets[i].y;s.z=0;s.tx=s.x;s.ty=s.y;s.vx=0;s.vy=0;s.vz=0;s.spin=0;s.turn=0;s.rotationClock=0;s.turnStart=null;s.turnDuration=0;s.turnDirection=1;s.turnReadyAt=0;s.lastTurnStart=-1;s.squash=0;s.squashVelocity=0;});
+  this.flightSpan=Math.max(h+4*r+24,Math.max(0,...ps.map(p=>p.y))-Math.min(0,...ps.map(p=>p.y))+h+4*r+config.lineSpacing+24);
   this.flowActive=!!config.flowThrough;
-  if(config.flowThrough&&ps.length){const highest=ps.reduce((v,p)=>Math.max(v,p.y),-Infinity);const shift=highest+h/2+r*1.2+12;for(const p of ps){p.y-=shift;p.ty=p.y;p.vy=60;}}
+  if((config.flowThrough||config.repeatFlight)&&ps.length){const highest=ps.reduce((v,p)=>Math.max(v,p.y),-Infinity);const shift=highest+h/2+r*1.2+12;for(const p of ps){p.y-=shift;p.ty=p.y;p.vy=60;}}
+  if(config.repeatFlight&&ps.length){
+   const top=Math.max(...ps.map(p=>p.y)),bottom=Math.min(...ps.map(p=>p.y));
+   const period=Math.max(r*2.35+config.lineSpacing,40)+top-bottom;
+   const copies=Math.max(2,Math.ceil((h+4*r)/period)+1),base=ps.map(p=>({...p}));
+   for(let j=1;j<copies;j++)for(const p of base)ps.push({...p,index:ps.length,sourceIndex:p.index,y:p.y-j*period,ty:p.ty-j*period});
+   this.flightSpan=copies*period;
+   if(config.startFilled){const shift=h-2*r;for(const p of ps){p.y+=shift;p.ty+=shift;}}
+  }
  }
  respace(config){
+  if(config.repeatFlight){this.arrange(config);return;}
+
   const old=this.particles.map(p=>({...p}));this.arrange(config);
   this.particles.forEach((p,i)=>{const tx=p.tx,ty=p.ty;Object.assign(p,old[i]);p.x+=tx-old[i].tx;p.y+=ty-old[i].ty;p.tx=tx;p.ty=ty;});
  }
  step(dt,config){
+  if(!!config.repeatFlight!==!!this.repeatActive)this.arrange(config);
   if(this.letterSpacing!==config.letterSpacing||this.lineSpacing!==config.lineSpacing)this.respace(config);
   if(!!config.flowThrough!==!!this.flowActive){if(config.flowThrough)this.arrange(config);else this.flowActive=false;}
   if(config.layout!==this.layout)this.arrange(config);
+  if(!!config.hold!==!!this.holdActive){if(config.hold)for(const p of this.particles)p.ty=p.y;this.holdActive=!!config.hold;}
   this.time+=dt;const d=dt*config.speed/40;if(d===0)return;
   this.motionTime+=d;
-  const t=this.motionTime,ps=this.particles,r=radius(config,this.width,this.height,ps.length),amp=config.float/100;
+  const t=this.motionTime,ps=this.particles,r=radius(config,this.width,this.height,this.sourceCount||ps.length),amp=config.float/100;
   this.rotationTimeline=(this.rotationTimeline||0)+d*config.rotation/100*2;
   const clock=this.rotationTimeline;
   // Each selected balloon keeps its own full-turn clock, even as visibility changes.
@@ -151,7 +169,7 @@ class World{
    const candidates=visible.filter(p=>p.turnStart==null&&clock>=(p.turnReadyAt||0)).sort((a,b)=>(a.lastTurnStart??-1)-(b.lastTurnStart??-1)||rotationRandom(a.index,selectionRound+99)-rotationRandom(b.index,selectionRound+99));
    for(const p of candidates.slice(0,Math.max(0,target-active))){p.turnStart=clock;p.lastTurnStart=clock;p.turnDuration=3.4+rotationRandom(p.index,selectionRound*13+202)*2.2;p.turnDirection=rotationRandom(p.index,selectionRound*13+203)<.5?-1:1;p.turn=0;}
   }
-  const ax=(config.windLeft-config.windRight)*2.3,ay=(config.windBottom-config.windTop)*2.3+((config.openTop||config.flowThrough)?30:0);
+  const ax=(config.windLeft-config.windRight)*2.3,ay=(config.windBottom-config.windTop)*2.3+((config.openTop||config.flowThrough||config.repeatFlight)?30:0);
   for(const s of ps){
    if(s.pinned){s.vx=s.vy=s.vz=0;continue;}
    const anchor=Number.isInteger(s.anchor)?ps[s.anchor]:null;
@@ -162,11 +180,21 @@ class World{
    if(q>.14){q=.14;sv=Math.min(0,sv);}if(q<-.06){q=-.06;sv=Math.max(0,sv);}
    s.squash=q;s.squashVelocity=sv;
    s.vx+=(ax+(Math.sin(t*.64+p)*30+Math.sin(t*1.27+p)*12)*amp+(config.hold?(s.tx-s.x)*2.8:0))*d;
-   s.vy+=(ay+(Math.sin(t*1.75+p)*100+Math.sin(t*3.5+p*2)*28+Math.cos(t*.39+p)*18)*amp+(config.hold&&!config.openTop&&!config.flowThrough?(s.ty-s.y)*2.8:0))*d;
+   // Keep vertical bobbing bounded around a steadily rising target in flight modes.
+   const heldFlight=config.hold&&(config.openTop||config.flowThrough||config.repeatFlight);
+   const riseSpeed=heldFlight?clamp(ay/.52,-300,300):0;
+   if(heldFlight)s.ty+=riseSpeed*d;
+   s.vy+=(ay+(Math.sin(t*1.75+p)*100+Math.sin(t*3.5+p*2)*28+Math.cos(t*.39+p)*18)*amp*(config.verticalBob===false?0:(config.verticalRange??100)/100)*(config.hold?.6:1)+(config.hold?(s.ty-s.y)*4-(s.vy-riseSpeed)*.8:0))*d;
    s.vz+=(Math.sin(t*.63+p)*amp*20-s.z*.32)*d;
    const damp=Math.exp(-.52*d);s.vx*=damp;s.vy*=damp;s.vz*=damp;
    const speed=Math.hypot(s.vx,s.vy,s.vz);if(speed>380){s.vx*=380/speed;s.vy*=380/speed;s.vz*=380/speed;}
    s.x+=s.vx*d;s.y+=s.vy*d;s.z+=s.vz*d;s.spin*=Math.exp(-1.6*d);
+  }
+  if(config.repeatFlight){
+   const span=Math.max(this.height+4*r+24,this.flightSpan||0);
+   for(const s of ps){if(s.pinned||Number.isInteger(s.anchor))continue;
+    if(s.y>this.height/2+r*1.3+12){const shift=Math.ceil((s.y-(this.height/2+r*1.3+12))/span)*span;s.y-=shift;s.ty-=shift;}
+   }
   }
   // Resolve screen-space contacts so depth cannot hide overlapping silhouettes.
   for(let iteration=0;iteration<(config.collision?10:1);iteration++){
@@ -190,15 +218,15 @@ class World{
    }
   }
   for(const s of ps){
-   const bx=Math.max(0,this.width/2-r-24),by=Math.max(0,this.height/2-r-24),bz=Math.max(35,r*.8);const restitution=.4+config.bounce/100*.55;
+   const bx=Math.max(0,this.width/2-r-24+(this.spacingOverflowX||0)),by=Math.max(0,this.height/2-r-24+(this.spacingOverflowY||0)),bz=Math.max(35,r*.8);const restitution=.4+config.bounce/100*.55;
    for(const [pos,vel,bound]of [['x','vx',bx],['y','vy',by],['z','vz',bz]]){
-    if(s[pos]>bound&&!((config.openTop||config.flowThrough)&&pos==='y')){s[pos]=bound;if(s[vel]>0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,s[vel],config.softness);s[vel]*=-restitution;}}
-    else if(s[pos]<-bound&&!(config.flowThrough&&pos==='y')){s[pos]=-bound;if(s[vel]<0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,-s[vel],config.softness);s[vel]*=-restitution;}}
+    if(s[pos]>bound&&!((config.openTop||config.flowThrough||config.repeatFlight)&&pos==='y')){s[pos]=bound;if(s[vel]>0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,s[vel],config.softness);s[vel]*=-restitution;}}
+    else if(s[pos]<-bound&&!((config.flowThrough||config.repeatFlight)&&pos==='y')){s[pos]=-bound;if(s[vel]<0){balloonImpact(s,pos==='x'?1:0,pos==='y'?1:0,pos==='z'?1:0,-s[vel],config.softness);s[vel]*=-restitution;}}
    }
   }
   }
  }
- snapshot(){return {rotationSelectionRound:this.rotationSelectionRound,letterSpacing:this.letterSpacing,lineSpacing:this.lineSpacing,flowActive:!!this.flowActive,width:this.width,height:this.height,time:this.time,motionTime:this.motionTime,rotationTimeline:this.rotationTimeline,layout:this.layout,particles:this.particles.map(s=>({...s}))};}
+ snapshot(){return {holdActive:this.holdActive,sourceCount:this.sourceCount,repeatActive:this.repeatActive,flightSpan:this.flightSpan,spacingOverflowX:this.spacingOverflowX,spacingOverflowY:this.spacingOverflowY,rotationSelectionRound:this.rotationSelectionRound,letterSpacing:this.letterSpacing,lineSpacing:this.lineSpacing,flowActive:!!this.flowActive,width:this.width,height:this.height,time:this.time,motionTime:this.motionTime,rotationTimeline:this.rotationTimeline,layout:this.layout,particles:this.particles.map(s=>({...s}))};}
  restore(s){Object.assign(this,s,{particles:s.particles.map(p=>({...p}))});}
 }
 const api={STEP,defaults,ranges,colors,validateConfig,letters,rgb,mixColor,interpolate,radius,hitTest,moveParticle,sampleSegment,rotatingIndices,rotationProfile,rotationRate,World};
