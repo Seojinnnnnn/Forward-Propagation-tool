@@ -1,0 +1,7 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert'),E=require('../dist/engine.js');
+const source=fs.readFileSync('dist/app.js','utf8'),start=source.indexOf('function makeRenderer()'),end=source.indexOf('\nlet renderer;',start),calls=[];
+const gl=new Proxy({COMPILE_STATUS:1,LINK_STATUS:2,getShaderParameter:()=>true,getProgramParameter:()=>true,getUniformLocation:(_,n)=>n,clearColor:(...a)=>calls.push(['clear',...a]),uniform1f:(n,v)=>{if(n==='letteringPass')calls.push(['pass',v]);},blendFuncSeparate:(...a)=>calls.push(['blend',...a])},{get:(o,k)=>k in o?o[k]:(()=>({}))});
+const env={E,gl,canvas:{width:720,height:900},overrides:{},inkOverrides:{},fonts:{pretendard:'sans-serif'},document:{createElement:()=>({getContext:()=>({fillText(){},measureText:()=>({width:20})})})},gradientStops:(c,k)=>[{position:0,color:c.color},{position:1,color:c.color}]};vm.createContext(env);vm.runInContext(source.slice(start,end)+';this.r=makeRenderer()',env);
+const w=new E.World('가',720,900,E.defaults);
+env.r.draw(w,E.defaults,true);assert.equal(calls.find(c=>c[0]==='clear')[4],0);assert(!calls.some(c=>c[0]==='pass'&&c[1]===3));assert(calls.some(c=>c[0]==='blend'));calls.length=0;
+env.r.draw(w,E.defaults);assert.equal(calls.find(c=>c[0]==='clear')[4],1);assert(calls.some(c=>c[0]==='pass'&&c[1]===3));console.log('PASS transparent clear, skipped background, separate alpha blending, opaque preview restored');
