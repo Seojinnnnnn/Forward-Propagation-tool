@@ -315,7 +315,7 @@ class World{
   this.spacingOverflowY=Math.max(0,...targets.map(p=>Math.abs(p.y)+r+24-h/2));
   if(config.startMode==='random'&&config.startSeed){const spread=Math.min(w,h)*.5*(config.startSpread??5)/100;targets=targets.map((p,i)=>({x:p.x+(rotationRandom(i,config.startSeed)*2-1)*spread,y:p.y+(rotationRandom(i,config.startSeed+719)*2-1)*spread}));this.spacingOverflowX+=spread;this.spacingOverflowY+=spread;}
   this.letterSpacing=config.letterSpacing;this.lineSpacing=config.lineSpacing;
-  ps.forEach((s,i)=>{s.pinned=false;delete s.anchor;s.x=targets[i].x;s.y=targets[i].y;s.z=0;s.tx=s.x;s.ty=s.y;s.vx=0;s.vy=0;s.vz=0;s.spin=0;s.turn=0;s.rotationClock=0;s.turnStart=null;s.turnDuration=0;s.turnDirection=1;s.turnReadyAt=0;delete s.turnRound;s.lastTurnStart=-1;s.squash=0;s.squashVelocity=0;});
+  ps.forEach((s,i)=>{s.pinned=false;delete s.anchor;s.x=targets[i].x;s.y=targets[i].y;s.z=0;s.tx=s.x;s.ty=s.y;s.vx=0;s.vy=0;s.vz=0;s.spin=0;s.turn=0;s.rotationClock=0;s.turnStart=null;s.turnDuration=0;s.turnDirection=1;s.turnReadyAt=0;delete s.turnRound;delete s.driftRound;s.lastTurnStart=-1;s.squash=0;s.squashVelocity=0;});
   this.flightSpan=Math.max(h+4*r+24,Math.max(0,...ps.map(p=>p.y))-Math.min(0,...ps.map(p=>p.y))+h+4*r+config.lineSpacing+24);
   this.flowActive=!!config.flowThrough;
   if((config.startMode==='below'||config.repeatFlight)&&ps.length){const highest=ps.reduce((v,p)=>Math.max(v,p.y),-Infinity);const shift=highest+h/2+r*1.2+12;for(const p of ps){p.y-=shift;p.ty=p.y;p.vy=60;}}
@@ -350,7 +350,26 @@ class World{
   const share=config.rotationShare/100;
   const wait=(p,round)=>.12-Math.log(Math.max(.001,1-rotationRandom(p.index,round*37+910)))*(.18+5*(1-share)**2);
   for(const p of ps){
-   if(p.turnStart!=null){const u=clamp((clock-p.turnStart)/p.turnDuration,0,1);const split=p.turnSplit||.5,v=u<split?u/split:(u-split)/(1-split);p.turn=p.turnDirection*Math.PI*((u<split?0:1)+v*v*(3-2*v));
+   if(config.freeRotation){
+    // No full-turn endpoint: angular momentum carries across the front-facing pose.
+    if(!Number.isFinite(p.driftRound)){
+     p.driftRound=0;p.driftNext=clock;p.driftVelocity=0;
+     p.driftDirection=rotationRandom(p.index,701)<.5?-1:1;
+     if(!Number.isFinite(p.turnAxisX)){const az=rotationRandom(p.index,702)*Math.PI*2,z=(rotationRandom(p.index,703)*2-1)*.55,rad=Math.sqrt(1-z*z);p.turnAxisX=rad*Math.cos(az);p.turnAxisY=rad*Math.sin(az);p.turnAxisZ=z;}
+    }
+    if(clock>=p.driftNext){const n=++p.driftRound;
+     p.driftTarget=rotationRandom(p.index,n*43+704)<share?p.driftDirection*(.8+rotationRandom(p.index,n*43+705)*1.1):0;
+     p.driftNext=clock+1.5+rotationRandom(p.index,n*43+706)*4;
+    }
+    const h=d*config.rotation/100*2;
+    const target=share>0?p.driftTarget:0;
+    p.driftVelocity+=(target-p.driftVelocity)*(1-Math.exp(-h*2));
+    if(!p.pinned)p.turn=(p.turn||0)+p.driftVelocity*h;
+    p.turnStart=null;
+    continue;
+   }
+   if(Number.isFinite(p.driftRound)){delete p.driftRound;p.turnReadyAt=clock+wait(p,0);}
+   if(p.turnStart!=null){const u=clamp((clock-p.turnStart)/p.turnDuration,0,1);p.turn=p.turnDirection*Math.PI*2*u;
     if(u>=1){p.turnStart=null;p.turnReadyAt=clock+wait(p,p.turnRound||0);}
    }
    if(!Number.isFinite(p.turnRound)){p.turnRound=0;p.turnReadyAt=clock+wait(p,0);}
@@ -797,7 +816,7 @@ uniform highp vec2 viewport;uniform sampler2D lettering;uniform float letteringS
   gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.depthMask(false);
   if(!transparent){gl.uniform1f(uniforms.letteringPass,3);gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);}
   gl.depthMask(true);gl.enable(gl.DEPTH_TEST);
-  for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){gl.clear(gl.DEPTH_BUFFER_BIT);const turn=s.turn||0,profile=E.rotationProfile(s.index);const pose=config.wallBounce?E.wallPose(config,s,sim.width,sim.height,r):{x:s.x,y:s.y,z:s.z,radius:r*E.particleScale(config,s)};gl.uniform3f(uniforms.center,pose.x,pose.y,pose.z);gl.uniform1f(uniforms.radius,pose.radius);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.turnAxis,s.turnAxisX??0,s.turnAxisY??1,s.turnAxisZ??0);gl.uniform1f(uniforms.turnAngle,config.freeRotation?turn:0);gl.uniform3f(uniforms.angles,config.freeRotation?0:Math.sin(turn)*profile.tilt,config.freeRotation?0:turn-.42*Math.sin(2*turn),config.freeRotation?0:Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.sourceIndex??s.index]||config.color));gl.uniform3f(uniforms.inkColor,...E.rgb(inkOverrides[s.sourceIndex??s.index]||config.ink));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
+  for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){gl.clear(gl.DEPTH_BUFFER_BIT);const turn=s.turn||0,profile=E.rotationProfile(s.index);const pose=config.wallBounce?E.wallPose(config,s,sim.width,sim.height,r):{x:s.x,y:s.y,z:s.z,radius:r*E.particleScale(config,s)};gl.uniform3f(uniforms.center,pose.x,pose.y,pose.z);gl.uniform1f(uniforms.radius,pose.radius);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.turnAxis,s.turnAxisX??0,s.turnAxisY??1,s.turnAxisZ??0);gl.uniform1f(uniforms.turnAngle,config.freeRotation?turn:0);gl.uniform3f(uniforms.angles,config.freeRotation?0:Math.sin(turn)*profile.tilt,config.freeRotation?0:turn,config.freeRotation?0:Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.sourceIndex??s.index]||config.color));gl.uniform3f(uniforms.inkColor,...E.rgb(inkOverrides[s.sourceIndex??s.index]||config.ink));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
    // A visible body hides rear lettering; a hidden body reveals its mirrored back side.
    gl.uniform1f(uniforms.letteringPass,0);
    if(config.visible)gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
