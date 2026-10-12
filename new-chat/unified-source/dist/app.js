@@ -18,9 +18,9 @@ function setRangeFill(el){el.style.setProperty('--fill',((Number(el.value)-Numbe
 function syncUI(){
  syncUnified();
  $('phrase-mode').checked=state.textMode!=='letters';
- if(gradientEditors)for(const editor of gradientEditors)editor.refresh();
+
  for(const name of Object.keys(E.ranges)){const el=$(name);el.value=state[name];if(document.activeElement!==$(name+'-out'))$(name+'-out').value=Math.round(state[name]);setRangeFill(el);}
- for(const name of ['positionHold','freeRotation','keepOrder','wallBounce','verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight'])$(name).checked=state[name];
+ for(const name of ['positionHold','freeRotation','keepOrder','wallBounce','verticalBob','visible','collision','hold','lockTypeSize','openTop','flowThrough','repeatFlight'])$(name).checked=state[name];
  for(const name of ['font','layout',...E.colors])if(document.activeElement!==$(name))$(name).value=state[name];
  $('pause').textContent=paused?'▶ 재생':'Ⅱ 일시정지';$('pause').setAttribute('aria-pressed',String(paused));
  $('timeline-play').textContent=timelinePlaying?'Ⅱ 반복 재생 정지':'▶ 타임라인 반복 재생';
@@ -39,25 +39,18 @@ function createWorld(config){
 function rememberPositions(){initialPositions={layout:state.layout,points:world.particles.map(p=>({x:p.x/width,y:p.y/height,z:p.z/Math.max(width,height),pinned:!!p.pinned,anchor:p.anchor??null,offsetX:(p.offsetX||0)/width,offsetY:(p.offsetY||0)/height,offsetZ:(p.offsetZ||0)/Math.max(width,height)}))};}
 function resetWorld(){world=createWorld(state);liveTime=0;accumulator=0;}
 function rebuildText(reset=true){if(reset)resetWorld();const letters=E.letters(textValue(),state.textMode);$('count').textContent=letters.length+'개의 구';$('empty').hidden=letters.length>0;
- const select=$('sphere-select'),old=select.value;select.replaceChildren();for(const s of letters){const option=document.createElement('option');option.value=s.index;option.textContent=(s.index+1)+' · '+s.char;select.append(option);}if(letters.some(s=>String(s.index)===old))select.value=old;select.disabled=!letters.length;$('individual-color').disabled=!letters.length;$('clear-color').disabled=!letters.length;$('individual-ink').disabled=!letters.length;$('clear-ink').disabled=!letters.length;updateIndividual();
 }
-function updateIndividual(){const index=Number($('sphere-select').value);$('individual-color').value=overrides[index]||state.color;$('individual-ink').value=inkOverrides[index]||state.ink;}
 function configAt(t,base=state,list=keys){return E.interpolate(list,t,base);}
 function stepWorld(targetWorld,target,base,list=keys){while(targetWorld.time+E.STEP<=target+1e-7){const t=targetWorld.time+E.STEP;targetWorld.step(E.STEP,configAt(t,base,list));}}
 function invalidateTimeline(reason){if(keys.length){keys=[];renderKeys();notice(reason+' 기존 키프레임을 지웠어요.');}cursor=0;timelinePlaying=false;}
 for(const name of Object.keys(E.ranges))$(name).oninput=()=>{state[name]=Number($(name).value);edited();};
-for(const name of ['positionHold','freeRotation','keepOrder','wallBounce','verticalBob','visible','collision','hold','lockTypeSize','sphereGradient','backgroundGradient','openTop','flowThrough','repeatFlight'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
-for(const name of ['font',...E.colors])$(name).oninput=()=>{state[name]=$(name).value;edited();updateIndividual();};
+for(const name of ['positionHold','freeRotation','keepOrder','wallBounce','verticalBob','visible','collision','hold','lockTypeSize','openTop','flowThrough','repeatFlight'])$(name).onchange=()=>{state[name]=$(name).checked;edited();};
+for(const name of ['font',...E.colors])$(name).oninput=()=>{state[name]=$(name).value;edited();};
 $('flowThrough').onchange=()=>{if(gesture||exporting)return;state.flowThrough=$('flowThrough').checked;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice(state.flowThrough?'아래 화면 밖에서 출발합니다.':'닫힌 공간의 배치로 돌아왔어요.');};
 $('restart-flight').onclick=()=>{if(gesture||exporting)return;state.flowThrough=true;state.startFilled=false;initialPositions=null;selected=-1;edited();invalidateTimeline('출발 모드가 바뀌어');resetWorld();paused=false;syncUI();notice('아래에서 다시 출발해요.');};
-for(const name of ['letterSpacing','lineSpacing'])$(name).oninput=()=>{state[name]=Number($(name).value);initialPositions=null;world.respace(state);edited();};
+for(const name of ['letterSpacing','lineSpacing','paragraphSpacing'])$(name).oninput=()=>{state[name]=Number($(name).value);initialPositions=null;world.respace(state);edited();};
 $('layout').onchange=()=>{state.layout=$('layout').value;initialPositions=null;world.arrange(state);edited();};
 $('arrange').onclick=()=>{initialPositions=null;world.arrange(state);edited();notice('정렬했어요. 현재 위치를 유지하려면 ‘정렬 유지’를 켜세요.');};
-$('sphere-select').onchange=()=>{selected=Number($('sphere-select').value);updateIndividual();};
-$('individual-color').oninput=()=>{overrides[$('sphere-select').value]=$('individual-color').value;edited();};
-$('individual-ink').oninput=()=>{inkOverrides[$('sphere-select').value]=$('individual-ink').value;edited();};
-$('clear-ink').onclick=()=>{delete inkOverrides[$('sphere-select').value];updateIndividual();edited();};
-$('clear-color').onclick=()=>{delete overrides[$('sphere-select').value];updateIndividual();edited();};
 function onText(){refreshGoogleGlyphs();initialPositions=null;selected=-1;edited();invalidateTimeline('텍스트 구성이 바뀌어');overrides={};inkOverrides={};rebuildText();}
 $('text').addEventListener('input',e=>{if(!e.isComposing)onText();});$('text').addEventListener('compositionend',onText);
 $('pause').onclick=()=>{seekToken++;seeking=false;timelinePlaying=false;paused=!paused;syncUI();};
@@ -186,7 +179,7 @@ function stamp(point){
  const added=world.particles[letter.index];
  if(gesture.added===0){gesture.anchor=letter.index;added.pinned=true;}
  else{const root=world.particles[gesture.anchor];added.anchor=gesture.anchor;added.offsetX=added.x-root.x;added.offsetY=added.y-root.y;added.offsetZ=added.z-root.z;}
- selected=letter.index;gesture.added++;gesture.changed=true;rebuildText(false);$('sphere-select').value=String(selected);updateIndividual();return true;
+ selected=letter.index;gesture.added++;gesture.changed=true;rebuildText(false);return true;
 }
 canvas.addEventListener('pointerdown',event=>{
  if(exporting||seeking||gesture||!renderer||event.button!==0)return;
@@ -197,7 +190,7 @@ canvas.addEventListener('pointerdown',event=>{
  const before={world:world.snapshot(),text:textValue(),selected,origin:initialPositions,paused,cursor,timelinePlaying};
  edited();canvas.focus({preventScroll:true});canvas.setPointerCapture(event.pointerId);canvas.dataset.dragging='true';
  gesture={id:event.pointerId,mode:toolMode,before,point,remainder:0,spacing:E.radius(state,width,height,world.particles.length)*2.2,chars,added:0,changed:false};
- if(toolMode==='draw')stamp(point);else{selected=hit;$('sphere-select').value=String(hit);updateIndividual();gesture.dx=world.particles[hit].x-point.x;gesture.dy=world.particles[hit].y-point.y;}
+ if(toolMode==='draw')stamp(point);else{selected=hit;gesture.dx=world.particles[hit].x-point.x;gesture.dy=world.particles[hit].y-point.y;}
  event.preventDefault();drawSelection();
 });
 function moveGesture(event){
@@ -260,9 +253,9 @@ uniform highp vec2 viewport;uniform sampler2D lettering;uniform float letteringS
  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i;indices.push(a,a+nx+1,a+1,a+1,a+nx+1,a+nx+2);}
  function attribute(name,values,size){const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(values),gl.STATIC_DRAW);const loc=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);}
  attribute('position',points,3);attribute('uv',uvs,2);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),gl.STATIC_DRAW);gl.enable(gl.DEPTH_TEST);
- let signature='',textures=new Map();
+ let signature='',textures=new Map(),textQuality=1;
  function clearTextures(){for(const t of textures.values())gl.deleteTexture(t);textures.clear();signature='';}
- function texture(char,config){if(textures.has(char))return textures.get(char);const c=document.createElement('canvas');c.width=1024;c.height=512;const ctx=c.getContext('2d');ctx.fillStyle='#000';if(config.textMode!=='letters'){
+ function textCanvas(char,config){const c=document.createElement('canvas');c.width=1024*textQuality;c.height=512*textQuality;const ctx=c.getContext('2d');if(textQuality!==1)ctx.scale(textQuality,textQuality);ctx.fillStyle='#000';if(config.textMode!=='letters'){
  const lines=char.split(/\r?\n/),base=config.typeSize*4/3,tracking=config.typeTracking||0,leading=config.typeLeading||0;
  ctx.font=Math.round(config.weight)+' '+base+'px '+fonts[config.font];
  const glyphs=line=>Array.from(line),measure=line=>glyphs(line).reduce((sum,ch)=>sum+ctx.measureText(ch).width,0);
@@ -271,8 +264,9 @@ uniform highp vec2 viewport;uniform sampler2D lettering;uniform float letteringS
  lines.forEach((line,i)=>{const chars=glyphs(line),width=measure(line)+Math.max(0,chars.length-1)*tracking;let x=512-width/2;for(const ch of chars){ctx.fillText(ch,x,256+(i-(lines.length-1)/2)*(size*1.2+leading));x+=ctx.measureText(ch).width+tracking;}});
  }else{ctx.font=Math.round(config.weight)+' '+Math.round(config.typeSize*4/3)+'px '+fonts[config.font];ctx.textAlign='left';ctx.textBaseline='alphabetic';let metrics=ctx.measureText?.(char);
  if(metrics&&metrics.width>500){ctx.font=Math.round(config.weight)+' '+Math.round(config.typeSize*4/3*500/metrics.width)+'px '+fonts[config.font];metrics=ctx.measureText(char);}
- if(metrics&&Number.isFinite(metrics.actualBoundingBoxLeft)&&Number.isFinite(metrics.actualBoundingBoxAscent)){ctx.fillText(char,512+(metrics.actualBoundingBoxLeft-metrics.actualBoundingBoxRight)/2,256+(metrics.actualBoundingBoxAscent-metrics.actualBoundingBoxDescent)/2);}else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(char,512,256,500);} }const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);textures.set(char,t);return t;}
- function draw(sim,config,transparent=false){
+ if(metrics&&Number.isFinite(metrics.actualBoundingBoxLeft)&&Number.isFinite(metrics.actualBoundingBoxAscent)){ctx.fillText(char,512+(metrics.actualBoundingBoxLeft-metrics.actualBoundingBoxRight)/2,256+(metrics.actualBoundingBoxAscent-metrics.actualBoundingBoxDescent)/2);}else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(char,512,256,500);} }return c;}
+ function texture(char,config){if(textures.has(char))return textures.get(char);const c=textCanvas(char,config);const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);textures.set(char,t);return t;}
+ function draw(sim,config,transparent=false,textOnly=false){
   const nextSignature=[config.typeTracking,config.typeLeading,config.textMode,Math.round(config.typeSize*4/3),Math.round(config.weight),config.font].join('|');if(nextSignature!==signature){clearTextures();signature=nextSignature;}
   gl.disable(gl.CULL_FACE);gl.depthMask(true);gl.viewport(0,0,canvas.width,canvas.height);const bg=E.rgb(config.background);gl.clearColor(...(transparent?[0,0,0]:bg),transparent?0:1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniform2f(uniforms.viewport,sim.width,sim.height);gl.uniform1f(uniforms.visible,config.visible?1:0);gl.uniform3f(uniforms.inkColor,...E.rgb(config.ink));gl.uniform3f(uniforms.background,...bg);const r=E.radius(config,sim.width,sim.height,(sim.sourceCount||sim.particles.length));gl.uniform1f(uniforms.letteringScale,r/(config.typeSizeReferenceRadius||10.4));
   for(const kind of ['sphere','background']){
@@ -284,8 +278,8 @@ uniform highp vec2 viewport;uniform sampler2D lettering;uniform float letteringS
   }
   gl.uniform3f(uniforms.backgroundEnd,...E.rgb(config.backgroundColorEnd));
   gl.uniform3f(uniforms.sphereEnd,...E.rgb(config.sphereColorEnd));
-  gl.uniform1f(uniforms.useBackgroundGradient,config.backgroundGradient?1:0);
-  gl.uniform1f(uniforms.useSphereGradient,config.sphereGradient?1:0);
+  gl.uniform1f(uniforms.useBackgroundGradient,0);
+  gl.uniform1f(uniforms.useSphereGradient,0);
   gl.bindTexture(gl.TEXTURE_2D,texture(' ',config));
   gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.depthMask(false);
   if(!transparent){gl.uniform1f(uniforms.letteringPass,3);gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);}
@@ -293,13 +287,13 @@ uniform highp vec2 viewport;uniform sampler2D lettering;uniform float letteringS
   for(const s of [...sim.particles].sort((a,b)=>a.z-b.z)){gl.clear(gl.DEPTH_BUFFER_BIT);const turn=s.turn||0,profile=E.rotationProfile(s.index);const pose=config.wallBounce?E.wallPose(config,s,sim.width,sim.height,r):{x:s.x,y:s.y,z:s.z,radius:r*E.particleScale(config,s)};gl.uniform3f(uniforms.center,pose.x,pose.y,pose.z);gl.uniform1f(uniforms.radius,pose.radius);gl.uniform1f(uniforms.squash,config.softness===0?0:(s.squash||0));gl.uniform3f(uniforms.squashAxis,s.squashAxisX||0,s.squashAxisY===undefined?1:s.squashAxisY,s.squashAxisZ||0);gl.uniform3f(uniforms.turnAxis,s.turnAxisX??0,s.turnAxisY??1,s.turnAxisZ??0);gl.uniform1f(uniforms.turnAngle,config.freeRotation?turn:0);gl.uniform3f(uniforms.angles,config.freeRotation?0:Math.sin(turn)*profile.tilt,config.freeRotation?0:turn,config.freeRotation?0:Math.sin(turn)*profile.roll);gl.uniform3f(uniforms.color,...E.rgb(overrides[s.sourceIndex??s.index]||config.color));gl.uniform3f(uniforms.inkColor,...E.rgb(inkOverrides[s.sourceIndex??s.index]||config.ink));gl.bindTexture(gl.TEXTURE_2D,texture(s.char,config));
    // A visible body hides rear lettering; a hidden body reveals its mirrored back side.
    gl.uniform1f(uniforms.letteringPass,0);
-   if(config.visible)gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
+   if(config.visible&&!textOnly)gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
    gl.uniform1f(uniforms.letteringPass,1);gl.depthMask(false);gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
    gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
    gl.disable(gl.BLEND);gl.depthMask(true);gl.enable(gl.DEPTH_TEST);}
 
  }
- return {draw,clearTextures};
+ return {draw,clearTextures,textCanvas,setTextQuality(value){textQuality=value;clearTextures();},maxTextureSize:gl.getParameter(gl.MAX_TEXTURE_SIZE),maxSize:gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)};
 }
 let renderer;
 try{renderer=makeRenderer();}catch(e){$('error').hidden=false;notice(e.message,true);}
@@ -407,42 +401,6 @@ function gradientStops(config,kind){
  return config[key]||[{position:0,color:kind==='sphere'?config.color:config.background},{position:1,color:kind==='sphere'?config.sphereColorEnd:config.backgroundColorEnd}];
 }
 
-var gradientEditors=[];
-for(const kind of ['sphere','background']){
- const bar=$(kind+'-gradient-bar'),picker=$(kind+'-stop-color'),position=$(kind+'-stop-position'),mode=$(kind+'-gradient-mode'),angle=$(kind+'-gradient-angle');
- const editor={kind,selected:0,refresh};gradientEditors.push(editor);
- function stops(){return gradientStops(state,kind).map(s=>({...s}));}
- function commit(list){state[kind+'Stops']=list;state[kind+'Gradient']=true;edited();}
- function refresh(){
-  const list=stops();editor.selected=Math.min(editor.selected,list.length-1);
-  bar.style.background='linear-gradient(to right,'+list.map(s=>s.color+' '+s.position*100+'%').join(',')+')';
-  bar.replaceChildren();
-  list.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.className='gradient-stop';b.style.left=s.position*100+'%';b.style.background=s.color;b.setAttribute('aria-label','색상 포인트 '+(i+1));b.setAttribute('aria-pressed',String(editor.selected===i));b.dataset.stop=String(i);
-   b.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();editor.selected=i;position.value=Math.round(Math.max(0,Math.min(1,s.position+(e.key==='ArrowRight'?.01:-.01)))*100);position.onchange();}};bar.append(b);
-  });
-  if(document.activeElement!==picker)picker.value=list[editor.selected].color;
-  if(document.activeElement!==position)position.value=Math.round(list[editor.selected].position*100);
-  mode.value=state[kind+'GradientMode'];if(document.activeElement!==angle)angle.value=state[kind+'GradientAngle'];
-  $(kind+'-stop-remove').disabled=list.length<=2;$(kind+'-stop-add').disabled=list.length>=16;
- }
- function add(at){const list=stops();if(list.length>=16)return;
-  list.push({position:at,color:list[editor.selected].color});const point=list[list.length-1];list.sort((a,b)=>a.position-b.position);editor.selected=list.indexOf(point);commit(list);
- }
- let dragging=false;
- const point=e=>Math.max(0,Math.min(1,(e.clientX-bar.getBoundingClientRect().left)/bar.getBoundingClientRect().width));
- bar.onpointerdown=e=>{if(exporting)return;e.preventDefault();const stop=e.target.closest('[data-stop]');if(stop)editor.selected=Number(stop.dataset.stop);else add(point(e));dragging=true;bar.setPointerCapture(e.pointerId);refresh();};
- bar.onpointermove=e=>{if(!dragging)return;const list=stops(),item=list[editor.selected];item.position=point(e);list.sort((a,b)=>a.position-b.position);editor.selected=list.indexOf(item);commit(list);};
- bar.onpointerup=bar.onpointercancel=()=>{dragging=false;};
- picker.oninput=picker.onchange=()=>{const list=stops();list[editor.selected].color=picker.value;commit(list);};
- position.onchange=()=>{const val=Number(position.value);if(!Number.isFinite(val))return refresh();const list=stops(),item=list[editor.selected];item.position=Math.max(0,Math.min(100,val))/100;list.sort((a,b)=>a.position-b.position);editor.selected=list.indexOf(item);commit(list);};
- $(kind+'-stop-add').onclick=()=>add(.5);
- $(kind+'-stop-remove').onclick=()=>{const list=stops();if(list.length<=2)return;list.splice(editor.selected,1);editor.selected=Math.max(0,editor.selected-1);commit(list);};
- mode.onchange=()=>{state[kind+'GradientMode']=mode.value;state[kind+'Gradient']=true;edited();};
- angle.onchange=()=>{const v=Number(angle.value);if(Number.isFinite(v)){state[kind+'GradientAngle']=Math.max(0,Math.min(360,v));edited();}};
- $(kind+'-gradient-reset').onclick=()=>{state[kind+'Stops']=null;edited();};
- refresh();
-}
-
 $('lockTypeSize').onchange=()=>{
  const enabled=$('lockTypeSize').checked;
  if(enabled)state.typeSizeReferenceRadius=E.radius(state,width,height,world.particles.length);
@@ -469,3 +427,17 @@ function syncUnified(){
 
 $('use-current-time').onclick=()=>{$('export-start').value=(world.time||0).toFixed(2);};
 $('preview-start').onclick=async()=>{const t=Number($('export-start').value);if(!Number.isFinite(t)||t<0||t>3600){notice('시작 시간을 0~3600초로 입력해주세요.',true);return;}if(exporting||gesture)return;await seekTo(t);renderer.draw(world,state);$('live-clock').textContent=world.time.toFixed(2)+'초';notice(t+'초 시작 장면이에요.');};
+
+$('save-svg').onclick=async()=>{
+ if(!renderer||exporting||gesture||fontBusy)return;
+ seekToken++;seeking=false;setBusy(true);
+ try{
+  notice('폰트 윤곽을 읽고 벡터로 변환하는 중…');
+  const font=await BalloonFontOutline.load({config:state,customFont,googleFont,text:textValue()});
+  const outlineCurves=new Map();for(const particle of world.particles)if(!outlineCurves.has(particle.char))outlineCurves.set(particle.char,BalloonFontOutline.curves(particle.char,state,font));
+  const svg=BalloonSVG.build({world,config:state,engine:E,resolution:$('resolution').value,outlineCurves,overrides,inkOverrides,gradientStops,transparent:$('transparent-export').checked});
+  X.download(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),projectFilename().replace(/\.json$/i,'')+'-frame.svg');notice('글자와 구를 모두 벡터 패스로 저장했어요.');
+ }catch(e){notice(e.message,true);}finally{setBusy(false);last=performance.now();}
+};
+
+$('text').addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing||e.keyCode===229||state.textMode==='block')return;e.preventDefault();const el=$('text');el.setRangeText(e.shiftKey?'\n':'\n\n',el.selectionStart,el.selectionEnd,'end');onText();});

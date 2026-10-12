@@ -2,9 +2,9 @@
 (function(root){
 'use strict';
 const STEP=1/120;
-const defaults={positionHold:false,positionStrength:40,startMode:"arranged",typeTracking:0,typeLeading:0,energy:0,keepOrder:false,orderStrength:80,freeRotation:false,wallBounce:false,depth:24,depthScale:32,textMode:"letters",verticalBob:true,verticalRange:100,startFilled:false,repeatFlight:false,startSpread:5,startSeed:0,lockTypeSize:true,typeSizeReferenceRadius:10.4,sphereStops:null,backgroundStops:null,sphereGradientMode:"linear",backgroundGradientMode:"linear",sphereGradientAngle:0,backgroundGradientAngle:0,sphereGradient:false,backgroundGradient:false,sphereColorEnd:"#3d9fff",backgroundColorEnd:"#792cff",float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
-const ranges={positionStrength:[0,100],typeTracking:[0,100],typeLeading:[0,100],energy:[0,100],orderStrength:[0,100],depth:[0,100],depthScale:[0,100],verticalRange:[0,200],startSpread:[0,100],letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[1,600],typeSize:[1,400],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
-const colors=['color','ink','background','sphereColorEnd','backgroundColorEnd'];
+const defaults={paragraphSpacing:80,positionHold:false,positionStrength:40,startMode:"arranged",typeTracking:0,typeLeading:0,energy:0,keepOrder:false,orderStrength:80,freeRotation:false,wallBounce:false,depth:24,depthScale:32,textMode:"letters",verticalBob:true,verticalRange:100,startFilled:false,repeatFlight:false,startSpread:5,startSeed:0,lockTypeSize:true,typeSizeReferenceRadius:10.4,sphereStops:null,backgroundStops:null,sphereGradientMode:"linear",backgroundGradientMode:"linear",sphereGradientAngle:0,backgroundGradientAngle:0,sphereGradient:false,backgroundGradient:false,sphereColorEnd:"#3d9fff",backgroundColorEnd:"#792cff",float:32,speed:28,rotation:30,rotationShare:30,size:20,typeSize:135,weight:500,font:'pretendard',visible:true,openTop:false,flowThrough:false,collision:true,bounce:38,softness:35,windTop:0,windBottom:6,windLeft:0,windRight:0,hold:false,letterSpacing:0,lineSpacing:0,layout:'text',color:'#d9ff96',ink:'#211c19',background:'#ffffff'};
+const ranges={paragraphSpacing:[0,600],positionStrength:[0,100],typeTracking:[0,100],typeLeading:[0,100],energy:[0,100],orderStrength:[0,100],depth:[0,100],depthScale:[0,100],verticalRange:[0,200],startSpread:[0,100],letterSpacing:[0,300],lineSpacing:[0,300],float:[0,100],speed:[0,100],rotation:[0,100],rotationShare:[0,100],size:[1,600],typeSize:[1,400],weight:[100,900],bounce:[0,100],softness:[0,100],windTop:[0,100],windBottom:[0,100],windLeft:[0,100],windRight:[0,100]};
+const colors=['color','ink','background',];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function validateConfig(input){
  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('설정 형식을 확인해주세요.');
@@ -27,14 +27,18 @@ function validateConfig(input){
   else if(key==='font'&&!['gothic','serif','rounded','mono','brush','custom','google','pretendard'].includes(value))throw Error('폰트를 확인해주세요.');
   out[key]=value;
  }
+ out.sphereGradient=false;out.backgroundGradient=false;out.sphereStops=null;out.backgroundStops=null;
  return out;
 }
 function letters(text,mode="letters"){
  if(mode==="block")return text.trim()?[{char:text,row:0,col:0,index:0}]:[];
- if(mode==="words"){const result=[];text.split(/\r?\n/).forEach((line,row)=>line.trim().split(/\s+/u).filter(Boolean).forEach((char,col)=>result.push({char,row,col,index:result.length})));return result;}
- const chars=typeof Intl.Segmenter==='function'?Array.from(new Intl.Segmenter('ko',{granularity:'grapheme'}).segment(text),x=>x.segment):Array.from(text);
- const result=[];let row=0,col=0;
- for(const char of chars){if(char==='\n'){row++;col=0;}else if(/\s/u.test(char))col+=.45;else{result.push({char,row,col,index:result.length});col++;}}
+ const result=[];let row=0,paragraph=0;
+ text.replace(/\r\n/g,'\n').split(/(\n+)/).forEach((line,i)=>{
+  if(i%2){row++;if(line.length>1)paragraph+=line.length-1;return;}
+  if(mode==='words'){line.trim().split(/\s+/u).filter(Boolean).forEach((char,col)=>result.push({char,row,col,paragraph,index:result.length}));return;}
+  const chars=typeof Intl.Segmenter==='function'?Array.from(new Intl.Segmenter('ko',{granularity:'grapheme'}).segment(line),x=>x.segment):Array.from(line);let col=0;
+  for(const char of chars){if(/\s/u.test(char))col+=.45;else{result.push({char,row,col,paragraph,index:result.length});col++;}}
+ });
  return result;
 }
 function rgb(hex){return [1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);}
@@ -127,17 +131,18 @@ class World{
      if(s.row!==prev){if(prev>=0)offset=Math.max(...rows.keys())+1;prev=s.row;}
      row=offset+Math.floor(s.col/maxCols);col=s.col%maxCols;
     }
-    rows.set(row,Math.max(rows.get(row)||0,col+1));return {row,col};
+    rows.set(row,Math.max(rows.get(row)||0,col+1));return {row,col,paragraph:config.layout==='text'?(s.paragraph||0):0};
    });
    const rowCount=Math.max(1,...Array.from(rows.keys(),r=>r+1));
    const stepX=Math.max(0,Math.min(r*2.35,(w-margin*2)/Math.max(1,...Array.from(rows.values(),v=>v-1))))+config.letterSpacing,stepY=Math.max(0,Math.min(r*2.35,(h-margin*2)/Math.max(1,rowCount-1)))+config.lineSpacing;
-   targets=targets.map(p=>({x:(p.col-(rows.get(p.row)-1)/2)*stepX,y:((rowCount-1)/2-p.row)*stepY}));
+   const extra=(config.paragraphSpacing??80)-config.lineSpacing;const ys=targets.map(p=>p.row*stepY+p.paragraph*extra),center=ys.length?(Math.min(...ys)+Math.max(...ys))/2:0;
+   targets=targets.map((p,i)=>({x:(p.col-(rows.get(p.row)-1)/2)*stepX,y:center-ys[i]}));
   }
   if(['circle','rings','diagonal','zigzag'].includes(config.layout))targets=targets.map(p=>({x:p.x*(1+config.letterSpacing/(r*2.35)),y:p.y*(1+config.lineSpacing/(r*2.35))}));
   this.spacingOverflowX=Math.max(0,...targets.map(p=>Math.abs(p.x)+r+24-w/2));
   this.spacingOverflowY=Math.max(0,...targets.map(p=>Math.abs(p.y)+r+24-h/2));
   if(config.startMode==='random'&&config.startSeed){const spread=Math.min(w,h)*.5*(config.startSpread??5)/100;targets=targets.map((p,i)=>({x:p.x+(rotationRandom(i,config.startSeed)*2-1)*spread,y:p.y+(rotationRandom(i,config.startSeed+719)*2-1)*spread}));this.spacingOverflowX+=spread;this.spacingOverflowY+=spread;}
-  this.letterSpacing=config.letterSpacing;this.lineSpacing=config.lineSpacing;
+  this.letterSpacing=config.letterSpacing;this.lineSpacing=config.lineSpacing;this.paragraphSpacing=config.paragraphSpacing;
   ps.forEach((s,i)=>{s.pinned=false;delete s.anchor;s.x=targets[i].x;s.y=targets[i].y;s.z=0;s.tx=s.x;s.ty=s.y;s.vx=0;s.vy=0;s.vz=0;s.spin=0;s.turn=0;s.rotationClock=0;s.turnStart=null;s.turnDuration=0;s.turnDirection=1;s.turnReadyAt=0;delete s.turnRound;delete s.driftRound;s.lastTurnStart=-1;s.squash=0;s.squashVelocity=0;});
   this.flightSpan=Math.max(h+4*r+24,Math.max(0,...ps.map(p=>p.y))-Math.min(0,...ps.map(p=>p.y))+h+4*r+config.lineSpacing+24);
   this.flowActive=!!config.flowThrough;
@@ -160,7 +165,7 @@ class World{
  step(dt,config){
   if(config.wallBounce){if(!this.wallActive)for(const p of this.particles){p.vx=(rotationRandom(p.index,501)<.5?-1:1)*140;p.vy=170;}config={...config,hold:false,openTop:false,flowThrough:false,repeatFlight:false};}this.wallActive=!!config.wallBounce;
   if(!!config.repeatFlight!==!!this.repeatActive)this.arrange(config);
-  if(this.letterSpacing!==config.letterSpacing||this.lineSpacing!==config.lineSpacing)this.respace(config);
+  if(this.letterSpacing!==config.letterSpacing||this.lineSpacing!==config.lineSpacing||this.paragraphSpacing!==config.paragraphSpacing)this.respace(config);
   if(!!config.flowThrough!==!!this.flowActive){if(config.flowThrough)this.arrange(config);else this.flowActive=false;}
   if(config.layout!==this.layout)this.arrange(config);
   if(!!config.hold!==!!this.holdActive){if(config.hold)for(const p of this.particles)p.ty=p.y;this.holdActive=!!config.hold;}
@@ -291,7 +296,7 @@ class World{
   }
   if(config.wallBounce)for(const p of ps){const fit=wallPose(config,p,this.width,this.height,r);p.x=fit.x;p.y=fit.y;}
  }
- snapshot(){return {wallActive:this.wallActive,holdActive:this.holdActive,sourceCount:this.sourceCount,repeatActive:this.repeatActive,flightSpan:this.flightSpan,spacingOverflowX:this.spacingOverflowX,spacingOverflowY:this.spacingOverflowY,rotationSelectionRound:this.rotationSelectionRound,letterSpacing:this.letterSpacing,lineSpacing:this.lineSpacing,flowActive:!!this.flowActive,width:this.width,height:this.height,time:this.time,motionTime:this.motionTime,rotationTimeline:this.rotationTimeline,layout:this.layout,particles:this.particles.map(s=>({...s}))};}
+ snapshot(){return {wallActive:this.wallActive,holdActive:this.holdActive,sourceCount:this.sourceCount,repeatActive:this.repeatActive,flightSpan:this.flightSpan,spacingOverflowX:this.spacingOverflowX,spacingOverflowY:this.spacingOverflowY,rotationSelectionRound:this.rotationSelectionRound,letterSpacing:this.letterSpacing,lineSpacing:this.lineSpacing,paragraphSpacing:this.paragraphSpacing,flowActive:!!this.flowActive,width:this.width,height:this.height,time:this.time,motionTime:this.motionTime,rotationTimeline:this.rotationTimeline,layout:this.layout,particles:this.particles.map(s=>({...s}))};}
  restore(s){Object.assign(this,s,{particles:s.particles.map(p=>({...p}))});}
 }
 const api={particleScale,wallPose,STEP,defaults,ranges,colors,validateConfig,letters,rgb,mixColor,interpolate,radius,hitTest,moveParticle,sampleSegment,rotatingIndices,rotationProfile,rotationRate,World};

@@ -9,6 +9,5 @@ $('apply-start').onclick=()=>{if(state.startMode==='random')state.startSeed=1+Ma
 $('startSpread').oninput=()=>{state.startSpread=Number($('startSpread').value);state.startMode='random';if(!state.startSeed)state.startSeed=1+Math.floor(Math.random()*2147483000);sceneChanged('시작 범위가 바뀌어');};
 $('repeatFlight').onchange=()=>{state.repeatFlight=$('repeatFlight').checked;if(!state.repeatFlight&&state.startMode==='filled')state.startMode='arranged';sceneChanged('반복 방식이 바뀌어');};
 $('background').oninput=$('background').onchange=()=>{state.background=$('background').value;state.backgroundGradient=false;edited();renderer?.draw(world,state);};
-$('backgroundColorEnd').oninput=$('backgroundColorEnd').onchange=()=>{const color=$('backgroundColorEnd').value;state.backgroundColorEnd=color;if(state.backgroundStops)state.backgroundStops=state.backgroundStops.map((s,i,a)=>i===a.length-1?{...s,color}:{...s});edited();};
 $('studio-preset-apply').onclick=async()=>{if(exporting||fontBusy)return;const key=$('studio-preset').value;try{if(key==='basic'){await $('reset-defaults').onclick();}else await applyProject(studioPresets[key]);paused=false;syncUI();notice('시작 프리셋을 적용했어요. 각 설정을 자유롭게 바꿀 수 있어요.');}catch(e){notice(e.message,true);}};
 syncUnified();
