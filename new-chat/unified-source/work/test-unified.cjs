@@ -16,6 +16,7 @@ const evaluate=s=>vm.runInContext(s,context);
 
 vm.runInContext(fs.readFileSync('dist/unified.js','utf8'),context);
 (async()=>{
+ await evaluate('startupReady');assert.equal(evaluate('textValue()'),'26');assert.equal(evaluate('state.background'),evaluate('teaserProjects[0].config.background'));assert.equal(evaluate('paused'),false);
  elements['text-unit'].value='words';elements['text-unit'].onchange();elements.text.value='어랏 어랏 어랏';elements.text.listeners.input({isComposing:false});assert.equal(evaluate('world.particles.length'),3);
  elements['text-unit'].value='block';elements['text-unit'].onchange();assert.equal(evaluate('world.particles.length'),1);
  elements['space-mode'].value='through';elements['space-mode'].onchange();elements['start-mode'].value='filled';elements['start-mode'].onchange();elements['apply-start'].onclick();assert(evaluate('world.particles.some(p=>Math.abs(p.y)<height/2)'));assert(evaluate('state.repeatFlight'));
@@ -30,6 +31,10 @@ vm.runInContext(fs.readFileSync('dist/unified.js','utf8'),context);
  await evaluate("exportAnimation('png')");
  const times=evaluate('exportTimes');assert(times.length>=3);assert(Math.abs(times[0]-2)<1/60);assert(Math.abs(times[2]-(2+2/30))<1/60);assert(downloaded.some(v=>v.name.endsWith('.zip')));
  elements['project-filename'].value='풍선 실험.json';elements['save-project'].onclick();assert.equal(downloaded.at(-1).name,'풍선 실험.json');elements['project-filename'].value=' ';elements['save-project'].onclick();assert.equal(downloaded.at(-1).name,'balloon-keyframes.json');
+ for(let i=1;i<=6;i++){await elements['teaser-'+i].onclick();assert.equal(evaluate('textValue()'),evaluate('teaserProjects['+(i-1)+'].text'));}
+ elements['custom-width'].value='2345';elements['custom-height'].value='3456';elements['apply-resolution'].onclick();assert.equal(elements.resolution.value,'2345x3456');context.customProject=JSON.parse(evaluate('JSON.stringify(projectData())'));await evaluate('applyProject(customProject)');assert.equal(elements.resolution.value,'2345x3456');elements['custom-width'].value='10000';elements['apply-resolution'].onclick();assert.equal(elements.resolution.value,'2345x3456');
+ for(let i=1;i<=6;i++){const ink=evaluate('state.ink'),text=evaluate('textValue()');elements['palette-'+i].onclick();assert.equal(evaluate('state.background'),evaluate('teaserProjects['+(i-1)+'].config.background'));assert.equal(evaluate('state.color'),evaluate('teaserProjects['+(i-1)+'].config.color'));assert.equal(evaluate('state.ink'),evaluate('state.background'));assert.equal(evaluate('textValue()'),text);}
+ console.log('PASS six palettes and six teaser presets, custom resolution round trip and bounds');
  console.log('PASS selected export start and duration');
  console.log('PASS unified initialization, text modes, independent start/space/motion, three presets, JSON round trip, background picker and transparent PNG');
 })().catch(e=>{console.error(e);process.exitCode=1;});

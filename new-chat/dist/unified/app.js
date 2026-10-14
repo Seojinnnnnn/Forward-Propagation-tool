@@ -55,8 +55,13 @@ function onText(){refreshGoogleGlyphs();initialPositions=null;selected=-1;edited
 $('text').addEventListener('input',e=>{if(!e.isComposing)onText();});$('text').addEventListener('compositionend',onText);
 $('pause').onclick=()=>{seekToken++;seeking=false;timelinePlaying=false;paused=!paused;syncUI();};
 function fitStage(){const parent=$('stage').parentElement;const w=Math.max(10,parent.clientWidth-26),h=Math.max(10,parent.clientHeight-26);const scale=Math.min(w/width,h/height);$('stage').style.width=(width*scale)+'px';$('stage').style.height=(height*scale)+'px';}
+function validResolution(value){return typeof value==='string'&&(resolutions.includes(value)||/^\d{1,4}x\d{1,4}$/.test(value)&&value.split('x').every(n=>Number(n)>=1&&Number(n)<10000));}
 function setResolution(value){
- if(!resolutions.includes(value))throw Error('지원하는 판형을 선택해주세요.');
+ if(!validResolution(value))throw Error('가로·세로를 1~9999px로 입력해주세요.');
+ $('custom-resolution-fields').hidden=resolutions.includes(value);
+ if(!resolutions.includes(value))$('custom-resolution-option').value=value;
+ $('resolution').value=value;
+ const sizes=value.split('x');$('custom-width').value=sizes[0];$('custom-height').value=sizes[1];
  const [pixelWidth,pixelHeight]=value.split('x').map(Number);
  // Keep scene proportions and motion independent of export pixel density.
  const scale=720/Math.min(pixelWidth,pixelHeight);width=pixelWidth*scale;height=pixelHeight*scale;
@@ -131,7 +136,7 @@ function validateProject(p){
  }
  if(!p.config.startMode)p.config.startMode=p.config.startFilled?'filled':p.config.flowThrough?'below':p.config.startSeed?'random':'arranged';
  if(p.googleFont!==undefined&&p.googleFont!==null&&(!p.googleFont||!validGoogleFamily(p.googleFont.family)))throw Error('Google 폰트 정보를 확인해주세요.');
- p.config=E.validateConfig(p.config);if(!resolutions.includes(p.resolution)||![24,30,60].includes(p.fps)||!Number.isInteger(p.duration)||p.duration<1||p.duration>30)throw Error('출력 설정을 확인해주세요.');
+ p.config=E.validateConfig(p.config);if(!validResolution(p.resolution)||![24,30,60].includes(p.fps)||!Number.isInteger(p.duration)||p.duration<1||p.duration>30)throw Error('출력 설정을 확인해주세요.');
  if(!Array.isArray(p.keyframes)||p.keyframes.length>100)throw Error('키프레임 형식을 확인해주세요.');const seen=new Set();p.keyframes=p.keyframes.map(k=>{if(!k||typeof k.time!=='number'||!Number.isFinite(k.time)||k.time<0||k.time>p.duration||seen.has(k.time))throw Error('키프레임 시간을 확인해주세요.');seen.add(k.time);return {time:k.time,config:E.validateConfig(k.config)};}).sort((a,b)=>a.time-b.time);
  if(!p.overrides||typeof p.overrides!=='object'||Array.isArray(p.overrides))throw Error('구 색상을 확인해주세요.');for(const [key,color]of Object.entries(p.overrides))if(!/^\d+$/.test(key)||Number(key)>=E.letters(p.text,p.config.textMode).length||typeof color!=='string'||!/^#[0-9a-f]{6}$/i.test(color))throw Error('개별 색상 형식을 확인해주세요.');
  if(p.inkOverrides===undefined)p.inkOverrides={};if(!p.inkOverrides||typeof p.inkOverrides!=='object'||Array.isArray(p.inkOverrides))throw Error('글자 색상을 확인해주세요.');const letterCount=E.letters(p.text,p.config.textMode).length;for(const [key,color] of Object.entries(p.inkOverrides))if(!/^\d+$/.test(key)||Number(key)>=letterCount||typeof color!=='string'||!/^#[0-9a-f]{6}$/i.test(color))throw Error('개별 글자 색상을 확인해주세요.');
@@ -371,12 +376,14 @@ $('builtin-flight-preset').onclick=()=>applySavedPreset(builtinFlightPreset);
 // Workspace preferences are independent of the artwork and its exported settings.
 let workspaceView={left:true,right:true,night:false};
 try{const saved=JSON.parse(localStorage.getItem('balloon-workspace-view-unified')||'null');if(saved)for(const key of Object.keys(workspaceView))if(typeof saved[key]==='boolean')workspaceView[key]=saved[key];}catch{}
+workspaceView.night=false;
 function syncWorkspaceView(){
  $('motion-controls').hidden=!workspaceView.left;
  $('controls').hidden=!workspaceView.right;
  document.body.classList.toggle('left-panel-hidden',!workspaceView.left);
  document.body.classList.toggle('right-panel-hidden',!workspaceView.right);
- document.body.classList.toggle('night-mode',workspaceView.night);
+ document.body.classList.toggle('night-mode',false);
+ document.body.classList.toggle('dark-preview-surround',workspaceView.night);
  const wide=!workspaceView.left&&!workspaceView.right;
  document.body.classList.toggle('wide-canvas',wide);
  for(const [side,label] of [['left','왼쪽'],['right','오른쪽']]){
@@ -393,7 +400,7 @@ function syncWorkspaceView(){
 }
 $('toggle-left-panel').onclick=()=>{workspaceView.left=!workspaceView.left;syncWorkspaceView();};
 $('toggle-right-panel').onclick=()=>{workspaceView.right=!workspaceView.right;syncWorkspaceView();};
-$('toggle-theme').onchange=()=>{workspaceView.night=$('toggle-theme').checked;syncWorkspaceView();};
+$('toggle-theme').onchange=()=>{workspaceView.night=$('toggle-theme').checked;syncWorkspaceView();renderer?.draw(world,state);};
 syncWorkspaceView();
 
 function gradientStops(config,kind){
@@ -441,3 +448,21 @@ $('save-svg').onclick=async()=>{
 };
 
 $('text').addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing||e.keyCode===229||state.textMode==='block')return;e.preventDefault();const el=$('text');el.setRangeText(e.shiftKey?'\n':'\n\n',el.selectionStart,el.selectionEnd,'end');onText();});
+
+const previousResolutionChange=$('resolution').onchange;
+$('resolution').onchange=()=>{const custom=$('resolution').value===$('custom-resolution-option').value;$('custom-resolution-fields').hidden=!custom;if($('resolution').value==='custom'){$('resolution').value=$('custom-width').value+'x'+$('custom-height').value;return;}previousResolutionChange();};
+$('apply-resolution').onclick=()=>{const w=Number($('custom-width').value),h=Number($('custom-height').value);if(!Number.isInteger(w)||!Number.isInteger(h)||w<1||h<1||w>=10000||h>=10000){notice('가로·세로를 1~9999 사이의 정수로 입력해주세요.',true);return;}const value=w+'x'+h;$('custom-resolution-option').value=value;$('resolution').value=value;previousResolutionChange();};
+
+// A click previews fullscreen; dragging retains the editing gesture.
+let previewPointer=null;
+canvas.addEventListener('pointerdown',e=>{previewPointer={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};});
+canvas.addEventListener('pointermove',e=>{if(previewPointer&&Math.hypot(e.clientX-previewPointer.x,e.clientY-previewPointer.y)>5)previewPointer.moved=true;});
+canvas.addEventListener('pointercancel',()=>{previewPointer=null;});
+canvas.addEventListener('click',async()=>{
+ const pointer=previewPointer;previewPointer=null;
+ if(!pointer||pointer.moved||exporting||document.fullscreenElement||toolMode==='draw')return;
+ try{if(!$('canvas-preview').requestFullscreen){notice('이 브라우저는 전체화면을 지원하지 않아요.',true);return;}await $('canvas-preview').requestFullscreen();}
+ catch(e){notice('전체화면을 열지 못했어요.',true);}
+});
+$('exit-fullscreen').onclick=()=>document.exitFullscreen?.();
+document.addEventListener?.('fullscreenchange',()=>{$('exit-fullscreen').hidden=document.fullscreenElement!==$('canvas-preview');});
